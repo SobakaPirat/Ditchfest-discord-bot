@@ -67,7 +67,7 @@ for uid, nickname in author_nicknames.items():
 logger.info("Никнеймы записаны")
 
 url = upload_with_direct_link()
-logger.info(upload_with_direct_link())
+logger.info(url)
 
 
 
