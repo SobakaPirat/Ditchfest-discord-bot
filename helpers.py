@@ -49,7 +49,7 @@ def get_map_records(map_uid, offset):
     res = requests.get(url, headers=headers)
     res = res.json()
     logger.info(f"Рекорды получены: {map_uid}")
-    time.sleep(1)
+    time.sleep(0.5)
     return res['tops'][0]['top']
 
 
@@ -72,7 +72,7 @@ def get_account_name(uids):
     
     res = requests.get(url, headers=headers)
     res = res.json()
-    time.sleep(1)
+    time.sleep(0.5)
     return res
 
 
@@ -90,7 +90,7 @@ def id_to_records(map_uid):
         #print(len(map_records))
         if len(map_records) < 100:
             stop = True
-        time.sleep(1)
+        time.sleep(0.5)
         offset += 100
     logger.info(f"{len(current_records)} Рекордов получено")
     return current_records
@@ -103,7 +103,6 @@ def ids_to_nicknames(uids):
     for ids_list in ids_splited:
         #get_account_name(ids_list)
         current_nicknames.update(get_account_name(ids_list))
-        time.sleep(1)
     logger.info("Никнеймы получены")
     return current_nicknames
 
@@ -138,13 +137,9 @@ def get_maps_info(map_uids):
         'Authorization': "nadeo_v1 t=" + NADEO_ACCESS_TOKEN,
         'User-Agent': USER_AGENT
     }
-    try:
-        res = requests.get(url, headers=headers)
-        res = res.json()
-        return res
-    except Exception as e:
-        print(f"❌ Ошибка при реквесте карт: {e}")
-        return None
+    res = requests.get(url, headers=headers)
+    res = res.json()
+    return res
 
 
 @retry_on_error()
