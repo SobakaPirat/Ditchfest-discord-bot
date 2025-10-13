@@ -7,12 +7,20 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 logger.info("Запуск приложения")
 
-
+import argparse
 from db.database import db
 from helpers import id_to_records, ids_to_nicknames
 from embed_template import post_all_discords
 
-maps_info = db.fetch_maps()[:500]
+# Сколько карт проверяем для командной строки
+parser = argparse.ArgumentParser()
+parser.add_argument('--maps', type=int, 
+                   help='Количество карт для проверки (по умолчанию все)')
+args = parser.parse_args()
+if args.maps:
+        logging.info(f"Будет проверено: {args.maps} карт")
+
+maps_info = db.fetch_maps()[:args.maps]
 for map in maps_info:
         logging.info('Карта: ' + map['map_name'])
         map_records = id_to_records(map['map_uid'])
