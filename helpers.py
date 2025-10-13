@@ -117,10 +117,12 @@ def number_to_time(number):
     hours, minutes = divmod(minutes, 60)
 
     if hours:
-        return f'{hours:02d}:{minutes:02d}:{seconds:02d}.{ms:03d}'
+        return f'{hours}:{minutes:02d}:{seconds:02d}.{ms:03d}'
     if minutes:
-        return f'{minutes:02d}:{seconds:02d}.{ms:03d}'
-    return f'{seconds:02d}.{ms:03d}'
+        return f'{minutes}:{seconds:02d}.{ms:03d}'
+    if seconds:
+        return f'{seconds}.{ms:03d}'
+    return f'0.{ms:03d}'
 
 
 @retry_on_error()
