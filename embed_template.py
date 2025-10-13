@@ -52,7 +52,7 @@ def post_record(webhook_url, map, timestamp, map_records):
     embed.set_thumbnail(url=map['map_thumbnail'])
 
     embed.set_footer(text="by Soba",
-                    icon_url="https://images2.imgbox.com/2f/41/jhWjD3hp_o.png")
+                    icon_url="https://download.dashmap.live/e10286e7-31dd-4127-bdf2-f092fd4e2887/df_short.png")
 
     # Добавляем Embed в Webhook
     webhook.add_embed(embed)
