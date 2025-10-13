@@ -10,10 +10,10 @@ from db.database import db
 from db.db_to_dropbox import upload_with_direct_link
 from helpers import get_maps_info, get_campaigns, get_campaign, get_map_playercount, ids_to_nicknames
 
-print(get_maps_info(['4W3wiyLZRLLyIMqVIDcFiz7hWm7']))
-
+#print(get_maps_info(['4W3wiyLZRLLyIMqVIDcFiz7hWm7']))
+logger.info("Собираем кампании")
 df_campaigns = get_campaigns("0", "DitchFest")['activityList']
-
+logger.info("Собираем карты")
 for campaign in df_campaigns[:1]:
     if campaign['campaignId'] != 0:
         camp = get_campaign(campaign['campaignId'])
@@ -48,14 +48,16 @@ for campaign in df_campaigns[:1]:
         logger.info("Карты записаны")
 
 #playercount
+logger.info("Собираем playercounts")
 for _map in db.fetch_maps_uid():
     _playercount = get_map_playercount(_map['map_uid'])
     db.update_maps_playercount(_playercount, _map['map_uid'])
-    print(_playercount, _map['map_uid'])
-    logger.info("Добавлен playercount")
+    #print(_playercount, _map['map_uid'])
+logger.info("Playercounts добавлены")
 
 
 #nicknames
+logger.info("Собираем никнеймы")
 authors_uid = db.fetch_authors_uid()
 unique_authors_uid = [item['map_author_uid'] for item in authors_uid]
 author_nicknames = ids_to_nicknames(unique_authors_uid)
