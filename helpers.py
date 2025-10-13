@@ -1,7 +1,6 @@
 import requests
 import time
 import logging
-from requests.exceptions import ConnectionError, HTTPError, RequestException
 from auth.auth import check_token_refresh
 from dotenv import find_dotenv, load_dotenv, set_key, get_key
 from functools import wraps
@@ -158,13 +157,9 @@ def get_campaign(campaign_id):
         'Authorization': "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
         'User-Agent': USER_AGENT
     }
-    try:
-        res = requests.get(url, headers=headers)
-        res = res.json()
-        return res["campaign"]
-    except Exception as e:
-        print(f"❌ Ошибка при реквесте кампании: {e}")
-        return None
+    res = requests.get(url, headers=headers)
+    res = res.json()
+    return res["campaign"]
 
 
 @retry_on_error()
@@ -179,13 +174,9 @@ def get_campaigns(offset, name):
         'Authorization': "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
         'User-Agent': USER_AGENT
     }
-    try:
-        res = requests.get(url, headers=headers)
-        res = res.json()
-        return res
-    except Exception as e:
-        print(f"❌ Ошибка при реквесте кампаний клуба: {e}")
-        return None
+    res = requests.get(url, headers=headers)
+    res = res.json()
+    return res
 
 
 @retry_on_error()

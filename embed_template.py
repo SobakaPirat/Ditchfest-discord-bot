@@ -1,5 +1,5 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from helpers import number_to_time
+from helpers import number_to_time, retry_on_error
 from datetime import datetime, timedelta, timezone
 from dotenv import find_dotenv, load_dotenv, set_key, get_key
 import time
@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+@retry_on_error()
 def post_record(webhook_url, map, timestamp, map_records):
     moscow_time = timezone(timedelta(hours=3))
 
@@ -57,22 +58,12 @@ def post_record(webhook_url, map, timestamp, map_records):
     webhook.add_embed(embed)
 
     # Отправляем
-    try:
-        webhook.execute()
-        logger.info("Сообщение отправлено!")
-        return True
-    except Exception as e:
-        logger.error(f"Дискорд не отвечает: {e}")
-        return False
+    webhook.execute()
+    logger.info("Сообщение отправлено!")
 
 def post_all_discords(map, map_records, timestamp):
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     WEBHOOKS_URL = get_key(dotenv_path, ("WEBHOOKS_URL"))
-    discord_notification = False
-    while not discord_notification:
-        #for url in WEBHOOKS_URL:
-        #print(WEBHOOKS_URL)
-        discord_notification = post_record(WEBHOOKS_URL, map, timestamp, map_records)
-        time.sleep(1)
+    post_record(WEBHOOKS_URL, map, timestamp, map_records)
 
