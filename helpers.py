@@ -1,6 +1,7 @@
 import requests
 import time
 import logging
+import pycountry
 from auth.auth import check_token_refresh
 from dotenv import find_dotenv, load_dotenv, set_key, get_key
 from functools import wraps
@@ -218,3 +219,75 @@ def get_map_playercount(map_uid):
     playercount = scores[0]["position"]
 
     return playercount
+
+@retry_on_error()
+def get_nadeo_zones():
+    check_token_refresh()
+    dotenv_path = find_dotenv()
+    load_dotenv(dotenv_path)
+    NADEO_ACCESS_TOKEN = get_key(dotenv_path, ("NADEO_ACCESS_TOKEN"))
+    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    url = "https://prod.trackmania.core.nadeo.online/zones/"
+    headers = {
+        'Authorization': "nadeo_v1 t=" + NADEO_ACCESS_TOKEN,
+        'User-Agent': USER_AGENT
+    }
+    res = requests.get(url, headers=headers)
+    res = res.json()
+    logger.info("Зоны надео получены")
+    return res
+
+def get_country(data, zone_id):
+    current_id = zone_id
+    zones = [current_id]
+    
+    while True:
+        # Ищем элемент с текущим zone_id
+        found = None
+        for item in data:
+            if item['zoneId'] == current_id:
+                found = item
+                break
+        
+        if not found:
+            break
+            
+        parent_id = found['parentId']
+        zones.append(parent_id)
+        current_id = parent_id
+    
+    # Если в цепочке меньше 2 элементов, вернуть None
+    if len(zones) < 4:
+        return None
+    
+    # Берём предпоследний parentId
+    country_zone = zones[-4]
+    
+    # Ищем icon для этого parentId
+    for item in data:
+        if item['zoneId'] == country_zone:
+            logger.info("Страна получена")
+            return item['name'].strip().lower()
+    
+    return None
+
+def country_to_flag_iso(country_name):
+    try:
+        # Ищем по официальному названию
+        country = pycountry.countries.search_fuzzy(country_name)
+        if country:
+            logger.info("Страна найдена в iso")
+            return f":flag_{country[0].alpha_2.lower()}:"
+    except:
+        logger.warning("Такой страны нет")
+        return ":globe_with_meridians:"
+
+def get_player_flag(zone_id, nadeo_zones):
+    try:
+        country = get_country(nadeo_zones, zone_id)
+        return country_to_flag_iso(country)
+    except Exception as e:
+        logger.error(f"Флаг не был получен. Ошибка: {e}")
+        
+
+#print(get_player_flag('301e2106-7e13-11e8-8060-e284abfd2bc4', get_nadeo_zones()))

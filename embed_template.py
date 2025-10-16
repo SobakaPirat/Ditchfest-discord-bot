@@ -1,5 +1,5 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from helpers import number_to_time, retry_on_error
+from helpers import number_to_time, retry_on_error, get_player_flag, get_nadeo_zones
 from datetime import datetime, timedelta, timezone
 from dotenv import find_dotenv, load_dotenv, set_key, get_key
 import time
@@ -24,9 +24,10 @@ def post_record(webhook_url, map, timestamp, map_records):
     #embed.set_author(name=map['map_author_name'])
 
     medals = [":first_place:", ":second_place:", ":third_place:"]
+    nadeo_zones = get_nadeo_zones()
     nicknames_discord = ""
     for place in range(min(3, len(map_records))):
-        nicknames_discord += f"{medals[place]} {map_records[place]['name']}\n"
+        nicknames_discord += f"{medals[place]} {get_player_flag(map_records[place]['zoneId'], nadeo_zones)} {map_records[place]['name']}\n"
     embed.add_embed_field(name="Record Holder",
                     value=nicknames_discord,
                     inline=True)
