@@ -17,7 +17,7 @@ def post_record(webhook_url, map, timestamp, map_records):
 
     embed = DiscordEmbed(title=map['map_name'],
                         url=f"https://trackmania.io/#/leaderboard/{map['map_uid']}",
-                        description=":checkered_flag: Новый рекорд!",
+                        description=":checkered_flag: New World Record!",
                         color=0xffe500,
                         timestamp=datetime.now(tz=moscow_time))
 
@@ -27,7 +27,7 @@ def post_record(webhook_url, map, timestamp, map_records):
     nicknames_discord = ""
     for place in range(min(3, len(map_records))):
         nicknames_discord += f"{medals[place]} {map_records[place]['name']}\n"
-    embed.add_embed_field(name="Рекордсмены",
+    embed.add_embed_field(name="Record Holder",
                     value=nicknames_discord,
                     inline=True)
     
@@ -40,13 +40,13 @@ def post_record(webhook_url, map, timestamp, map_records):
                 time_text += f"{number_to_time(map_records[place]['score'])}\n"
             else:
                 time_text += f"{number_to_time(map_records[place]['score'])} (+{number_to_time(map_records[place]['score'] - map_records[0]['score'])})\n"
-        embed.add_embed_field(name="Время",
+        embed.add_embed_field(name="Time",
                         value=time_text,
                         inline=True)
         
     if timestamp is not None:
         embed.add_embed_field(name="",
-                        value=f"Прошлый рекорд был поставлен <t:{timestamp}:R>",
+                        value=f"The previous world record has been set <t:{timestamp}:R>",
                         inline=False)
 
     embed.set_thumbnail(url=map['map_thumbnail'])

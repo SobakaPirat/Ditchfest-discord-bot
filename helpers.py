@@ -49,7 +49,7 @@ def get_map_records(map_uid, offset):
     res = requests.get(url, headers=headers)
     res = res.json()
     logger.info(f"Рекорды получены: {map_uid}")
-    time.sleep(0.5)
+    #time.sleep(0.5)
     return res['tops'][0]['top']
 
 
@@ -72,7 +72,7 @@ def get_account_name(uids):
     
     res = requests.get(url, headers=headers)
     res = res.json()
-    time.sleep(0.5)
+    #time.sleep(0.5)
     return res
 
 
@@ -90,7 +90,7 @@ def id_to_records(map_uid):
         #print(len(map_records))
         if len(map_records) < 100:
             stop = True
-        time.sleep(0.5)
+        #time.sleep(0.5)
         offset += 100
     logger.info(f"{len(current_records)} Рекордов получено")
     return current_records
