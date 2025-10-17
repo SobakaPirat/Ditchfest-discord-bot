@@ -38,7 +38,7 @@ for map in maps_info:
                 continue
         new_wr = map_records[0]
         #post_all_discords(map, map_records[:3], old_wr['player_timestamp'])
-        if (record['timestamp'] is not None) and (new_wr['timestamp'] != old_wr['player_timestamp']):
+        if (old_wr is not None) and (new_wr['timestamp'] != old_wr['player_timestamp']):
                 logging.info(f"Новый wr от {new_wr['name']}")
                 post_all_discords(map, map_records[:3], old_wr['player_timestamp'])
 
