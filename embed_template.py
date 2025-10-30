@@ -17,7 +17,7 @@ def post_record(webhook_url, map, timestamp, map_records):
 
     embed = DiscordEmbed(title=map['map_name'],
                         url=f"https://trackmania.io/#/leaderboard/{map['map_uid']}",
-                        description=":checkered_flag: New World Record!",
+                        description=f"{map['map_author_name']}\n\n:checkered_flag: New World Record!",
                         color=0xffe500,
                         timestamp=datetime.now(tz=moscow_time))
 
