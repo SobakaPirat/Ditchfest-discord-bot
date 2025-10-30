@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+import os
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv, get_key
 
@@ -11,6 +12,49 @@ DATABASE = get_key(dotenv_path, ("DATABASE"))
 class Database:
     def __init__(self):
         self.db_path = DATABASE
+        self.create_database_if_needed()
+
+    def create_database_if_needed(self):
+        if not os.path.exists(self.db_path):
+            logger.info("Creating database...")
+            self.create_database()
+            logger.info("Database created.")
+        else:
+            logger.info("Database already exists.")
+
+    def create_database(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        self.create_tables(cursor)
+        conn.commit()
+        conn.close()
+
+    def create_tables(self, cursor):
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Maps (
+                map_uid         TEXT    PRIMARY KEY    UNIQUE,
+                map_date        TEXT,
+                map_author_uid  TEXT,
+                map_author_name TEXT,
+                map_name        TEXT,
+                map_playercount INTEGER,
+                map_thumbnail   TEXT    UNIQUE,
+                map_at          INTEGER,
+                map_gold        INTEGER,
+                map_silver      INTEGER,
+                map_bronze      INTEGER
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Records (
+                map_uid          TEXT    NOT NULL    REFERENCES Maps (map_uid) ON DELETE CASCADE,
+                player_uid       TEXT,
+                player_name      TEXT,
+                player_time      INTEGER,
+                player_timestamp INTEGER,
+                player_place     INTEGER
+            )
+        """)
 
     #for updater
 
