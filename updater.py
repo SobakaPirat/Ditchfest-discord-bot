@@ -14,7 +14,7 @@ from helpers import get_maps_info, get_campaigns, get_campaign, get_map_playerco
 logger.info("Собираем кампании")
 df_campaigns = get_campaigns("0", "DitchFest")['activityList']
 logger.info("Собираем карты")
-for campaign in df_campaigns[:1]:
+for campaign in df_campaigns:
     if campaign['campaignId'] != 0:
         camp = get_campaign(campaign['campaignId'])
         publication_timestamp = camp["publicationTimestamp"]
@@ -46,6 +46,7 @@ for campaign in df_campaigns[:1]:
             #map['playercount'] = get_map_playercount(map['map_uid'])
             db.update_map_info(map)
         logger.info("Карты записаны")
+        break
 
 #playercount
 logger.info("Собираем playercounts")
@@ -70,9 +71,3 @@ logger.info("Никнеймы записаны")
 
 url = upload_with_direct_link()
 logger.info(url)
-
-
-
-
-
-
