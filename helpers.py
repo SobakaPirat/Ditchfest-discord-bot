@@ -199,6 +199,7 @@ def get_map_playercount(map_uid):
     NADEO_LIVESERVICES_ACCESS_TOKEN = get_key(
         dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN")
     )
+    USER_ID = get_key(dotenv_path, ("USER_ID"))
     USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
     leaderboard_url = (
         "https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/"
@@ -232,7 +233,7 @@ def get_map_playercount(map_uid):
     res = res.json()
 
     scores = res["tops"][0]["top"]
-    if scores[0]["accountId"] == "5367edf3-3faf-4a1d-927f-4e953fbceda9":
+    if scores[0]["accountId"] == USER_ID:
         return 0
 
     # last score on leaderboard has playercount position
