@@ -1,38 +1,40 @@
-from discord_webhook import DiscordWebhook, DiscordEmbed
-from helpers import number_to_time, retry_on_error, get_player_flag, get_nadeo_zones
-from datetime import datetime, timedelta, timezone
-from dotenv import find_dotenv, load_dotenv, set_key, get_key
-import time
 import logging
+from datetime import datetime, timedelta, timezone
+
+from discord_webhook import DiscordEmbed, DiscordWebhook
+from dotenv import find_dotenv, get_key, load_dotenv
+
+from helpers import get_nadeo_zones, get_player_flag, number_to_time, retry_on_error
 
 logger = logging.getLogger(__name__)
+
 
 @retry_on_error()
 def post_record(webhook_url, map, timestamp, map_records):
     moscow_time = timezone(timedelta(hours=3))
 
     # difference = [number_to_time(map_records[1]['score'] - map_records[0]['score']), number_to_time(map_records[2]['score'] - map_records[0]['score'])]
-    
-    webhook = DiscordWebhook(url=webhook_url,timeout=5)
 
-    embed = DiscordEmbed(title=map['map_name'],
-                        url=f"https://trackmania.io/#/leaderboard/{map['map_uid']}",
-                        description=f"{map['map_author_name']}\n\n:checkered_flag: New World Record!",
-                        color=0xffe500,
-                        timestamp=datetime.now(tz=moscow_time))
+    webhook = DiscordWebhook(url=webhook_url, timeout=5)
 
-    #embed.set_author(name=map['map_author_name'])
+    embed = DiscordEmbed(
+        title=map["map_name"],
+        url=f"https://trackmania.io/#/leaderboard/{map['map_uid']}",
+        description=f"{map['map_author_name']}\n\n:checkered_flag: New World Record!",
+        color=0xFFE500,
+        timestamp=datetime.now(tz=moscow_time),
+    )
+
+    # embed.set_author(name=map['map_author_name'])
 
     medals = [":first_place:", ":second_place:", ":third_place:"]
     nadeo_zones = get_nadeo_zones()
     nicknames_discord = ""
     for place in range(min(3, len(map_records))):
         nicknames_discord += f"{medals[place]} {get_player_flag(map_records[place]['zoneId'], nadeo_zones)} {map_records[place]['name']}\n"
-    embed.add_embed_field(name="Record Holder",
-                    value=nicknames_discord,
-                    inline=True)
-    
-    if map_records[0]['score'] < 0:
+    embed.add_embed_field(name="Record Holder", value=nicknames_discord, inline=True)
+
+    if map_records[0]["score"] < 0:
         time_text = "-# Secret\n" * min(3, len(map_records))
     else:
         time_text = ""
@@ -41,19 +43,21 @@ def post_record(webhook_url, map, timestamp, map_records):
                 time_text += f"{number_to_time(map_records[place]['score'])}\n"
             else:
                 time_text += f"{number_to_time(map_records[place]['score'])} (+{number_to_time(map_records[place]['score'] - map_records[0]['score'])})\n"
-        embed.add_embed_field(name="Time",
-                        value=time_text,
-                        inline=True)
-        
+        embed.add_embed_field(name="Time", value=time_text, inline=True)
+
     if timestamp is not None:
-        embed.add_embed_field(name="",
-                        value=f"The previous world record has been set <t:{timestamp}:R>",
-                        inline=False)
+        embed.add_embed_field(
+            name="",
+            value=f"The previous world record has been set <t:{timestamp}:R>",
+            inline=False,
+        )
 
-    embed.set_thumbnail(url=map['map_thumbnail'])
+    embed.set_thumbnail(url=map["map_thumbnail"])
 
-    embed.set_footer(text="by Soba",
-                    icon_url="https://download.dashmap.live/e10286e7-31dd-4127-bdf2-f092fd4e2887/df_short.png")
+    embed.set_footer(
+        text="by Soba",
+        icon_url="https://download.dashmap.live/e10286e7-31dd-4127-bdf2-f092fd4e2887/df_short.png",
+    )
 
     # Добавляем Embed в Webhook
     webhook.add_embed(embed)
@@ -62,9 +66,9 @@ def post_record(webhook_url, map, timestamp, map_records):
     webhook.execute()
     logger.info("Сообщение отправлено!")
 
+
 def post_all_discords(map, map_records, timestamp):
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     WEBHOOKS_URL = get_key(dotenv_path, ("WEBHOOKS_URL"))
     post_record(WEBHOOKS_URL, map, timestamp, map_records)
-
