@@ -1,4 +1,9 @@
+import argparse
 import logging
+
+from db.database import db
+from embed_template import post_all_discords
+from helpers import id_to_records, ids_to_nicknames
 
 logging.basicConfig(
     level=logging.INFO,
@@ -9,12 +14,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 logger.info("Запуск приложения")
-
-import argparse
-
-from db.database import db
-from embed_template import post_all_discords
-from helpers import id_to_records, ids_to_nicknames
 
 # Сколько карт проверяем для командной строки
 parser = argparse.ArgumentParser()
