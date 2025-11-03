@@ -1,3 +1,5 @@
+import logging
+
 import dropbox
 from dotenv import find_dotenv, get_key, load_dotenv
 
@@ -8,6 +10,8 @@ DROPBOX_KEY = get_key(dotenv_path, ("DROPBOX_KEY"))
 DROPBOX_SECRET = get_key(dotenv_path, ("DROPBOX_SECRET"))
 DROPBOX_TOKEN = get_key(dotenv_path, ("DROPBOX_TOKEN"))
 DROPBOX_REFRESH_TOKEN = get_key(dotenv_path, ("DROPBOX_REFRESH_TOKEN"))
+
+logger = logging.getLogger(__name__)
 
 
 def refresh_access_token():
@@ -21,7 +25,7 @@ def refresh_access_token():
         dbx.users_get_current_account()
         return dbx
     except dropbox.exceptions.AuthError as e:
-        print(f"Auth error: {e}")
+        logger.error(f"Auth error: {e}")
         return None
 
 
@@ -38,7 +42,7 @@ def get_dropbox_client():
         dbx.users_get_current_account()  # Проверяем валидность
         return dbx
     except dropbox.exceptions.AuthError:
-        print("❌ Оба токена невалидны, требуется новая авторизация")
+        logger.error("❌ Оба токена невалидны, требуется новая авторизация")
         return None
 
 
@@ -47,7 +51,7 @@ def upload_with_direct_link():
     dbx = get_dropbox_client()
 
     if dbx is None:
-        print("❌ Не удалось установить соединение с Dropbox")
+        logger.error("❌ Не удалось установить соединение с Dropbox")
         return None
 
     try:
@@ -63,9 +67,9 @@ def upload_with_direct_link():
         # Преобразуем в прямую ссылку для скачивания
         direct_download_url = shared_link.url.replace("dl=0", "dl=1")
 
-        print(f"🔗 Прямая ссылка для скачивания: {direct_download_url}")
+        logger.info(f"🔗 Прямая ссылка для скачивания: {direct_download_url}")
         return direct_download_url
 
     except Exception as e:
-        print(f"❌ Ошибка при загрузке файла: {e}")
+        logger.error(f"❌ Ошибка при загрузке файла: {e}")
         return None
