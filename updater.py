@@ -8,6 +8,7 @@ logger.info("Запуск апдейтера")
 
 from db.database import db
 from db.db_to_dropbox import upload_with_direct_link
+from dotenv import find_dotenv, load_dotenv, get_key
 from helpers import get_maps_info, get_campaigns, get_campaign, get_map_playercount, ids_to_nicknames
 
 #print(get_maps_info(['4W3wiyLZRLLyIMqVIDcFiz7hWm7']))
@@ -69,5 +70,10 @@ for uid, nickname in author_nicknames.items():
     db.update_author_nicknames(uid, nickname)
 logger.info("Никнеймы записаны")
 
-url = upload_with_direct_link()
-logger.info(url)
+#dropbox save db
+dotenv_path = find_dotenv()
+load_dotenv(dotenv_path)
+DROPBOX_SAVE = get_key(dotenv_path, ("DROPBOX_SAVE")).lower() == 'true'
+if DROPBOX_SAVE:
+    url = upload_with_direct_link()
+    logger.info(url)
