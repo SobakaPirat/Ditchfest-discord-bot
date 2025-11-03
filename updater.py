@@ -67,9 +67,9 @@ def update_last_campaign():
 
 def update_playercounts():
     logger.info("Собираем playercounts")
-    for _map in db.fetch_maps_uid():
-        _playercount = get_map_playercount(_map["map_uid"])
-        db.update_maps_playercount(_playercount, _map["map_uid"])
+    for map in db.fetch_maps_uid():
+        playercount = get_map_playercount(map["map_uid"])
+        db.update_maps_playercount(playercount, map["map_uid"])
         # print(_playercount, _map['map_uid'])
     logger.info("Playercounts добавлены")
 
