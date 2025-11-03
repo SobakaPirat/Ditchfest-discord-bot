@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 def post_record(webhook_url, map, timestamp, map_records):
     moscow_time = timezone(timedelta(hours=3))
 
-    # difference = [number_to_time(map_records[1]['score'] - map_records[0]['score']), number_to_time(map_records[2]['score'] - map_records[0]['score'])]
-
     webhook = DiscordWebhook(url=webhook_url, timeout=5)
 
     embed = DiscordEmbed(

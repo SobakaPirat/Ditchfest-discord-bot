@@ -312,6 +312,3 @@ def get_player_flag(zone_id, nadeo_zones):
         return country_to_flag_iso(country)
     except Exception as e:
         logger.error(f"Флаг не был получен. Ошибка: {e}")
-
-
-# print(get_player_flag('301e2106-7e13-11e8-8060-e284abfd2bc4', get_nadeo_zones()))
