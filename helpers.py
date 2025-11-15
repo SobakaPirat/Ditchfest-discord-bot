@@ -43,7 +43,7 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
 
 
 @retry_on_error()
-def get_map_records(map_uid, offset):
+def get_map_records(map_uid: str, offset: int) -> list:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -66,7 +66,7 @@ def get_map_records(map_uid, offset):
 
 
 @retry_on_error()
-def get_account_name(uids):
+def get_account_name(uids: list[str]) -> dict[str, str]:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -84,14 +84,14 @@ def get_account_name(uids):
     return res
 
 
-def split_list(input_list, chunk_size):
+def split_list(input_list: list, chunk_size: int) -> list[list]:
     return [
         input_list[i : i + chunk_size] for i in range(0, len(input_list), chunk_size)
     ]
 
 
 @retry_on_error()
-def id_to_records(map_uid):
+def id_to_records(map_uid: str) -> list[dict]:
     current_records = []
     stop = False
     offset = 0
@@ -107,7 +107,7 @@ def id_to_records(map_uid):
     return current_records
 
 
-def ids_to_nicknames(uids):
+def ids_to_nicknames(uids: list[str]) -> dict[str, str]:
     ids_splited = split_list(uids, 50)
     # print(ids_splited)
     current_nicknames = {}
@@ -118,7 +118,7 @@ def ids_to_nicknames(uids):
     return current_nicknames
 
 
-def number_to_time(number):
+def number_to_time(number: int) -> str:
     if number < 0:
         return "secret"
 
@@ -136,7 +136,7 @@ def number_to_time(number):
 
 
 @retry_on_error()
-def get_maps_info(map_uids):
+def get_maps_info(map_uids: list[str]) -> dict[str, any]:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -154,7 +154,7 @@ def get_maps_info(map_uids):
 
 
 @retry_on_error()
-def get_campaign(campaign_id):
+def get_campaign(campaign_id: int) -> dict:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -173,7 +173,7 @@ def get_campaign(campaign_id):
 
 
 @retry_on_error()
-def get_campaigns(offset, name):
+def get_campaigns(offset: int, name: str) -> dict:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -192,7 +192,7 @@ def get_campaigns(offset, name):
 
 
 @retry_on_error()
-def get_map_playercount(map_uid):
+def get_map_playercount(map_uid: str) -> int:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -243,7 +243,7 @@ def get_map_playercount(map_uid):
 
 
 @retry_on_error()
-def get_nadeo_zones():
+def get_nadeo_zones() -> list[dict]:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -260,7 +260,7 @@ def get_nadeo_zones():
     return res
 
 
-def get_country(data, zone_id):
+def get_country(data: list[dict], zone_id: int) -> str | None:
     current_id = zone_id
     zones = [current_id]
 
@@ -295,7 +295,7 @@ def get_country(data, zone_id):
     return None
 
 
-def country_to_flag_iso(country_name):
+def country_to_flag_iso(country_name: str) -> str:
     try:
         # Ищем по официальному названию
         country = pycountry.countries.search_fuzzy(country_name)
@@ -307,9 +307,10 @@ def country_to_flag_iso(country_name):
         return ":globe_with_meridians:"
 
 
-def get_player_flag(zone_id, nadeo_zones):
+def get_player_flag(zone_id: int, nadeo_zones: list[dict]) -> str:
     try:
         country = get_country(nadeo_zones, zone_id)
         return country_to_flag_iso(country)
     except Exception as e:
         logger.error(f"Флаг не был получен. Ошибка: {e}")
+        return ""

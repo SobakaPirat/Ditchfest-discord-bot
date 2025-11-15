@@ -11,7 +11,7 @@ DATABASE = get_key(dotenv_path, ("DATABASE"))
 
 
 class Database:
-    def __init__(self):
+    def __init__(self) -> None:
         self.db_path = DATABASE
         self.create_database_if_needed()
 
@@ -23,14 +23,14 @@ class Database:
         else:
             logger.info("Database already exists.")
 
-    def create_database(self):
+    def create_database(self) -> None:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         self.create_tables(cursor)
         conn.commit()
         conn.close()
 
-    def create_tables(self, cursor):
+    def create_tables(self, cursor: sqlite3.Cursor) -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Maps (
                 map_uid         TEXT    PRIMARY KEY    UNIQUE,
@@ -59,7 +59,7 @@ class Database:
 
     # for updater
 
-    def fetch_authors_uid(self):
+    def fetch_authors_uid(self) -> list[dict[str, str]]:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -70,8 +70,9 @@ class Database:
             return [dict(row) for row in maps]
         else:
             logger.warning("Запись не найдена")
+            return []
 
-    def fetch_maps_uid(self):
+    def fetch_maps_uid(self) -> list[dict[str, str]]:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -83,7 +84,7 @@ class Database:
         else:
             logger.warning("Запись не найдена")
 
-    def update_maps_playercount(self, map_playercount, map_uid):
+    def update_maps_playercount(self, map_playercount: int, map_uid: str) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -92,7 +93,9 @@ class Database:
             )
             conn.commit()
 
-    def update_author_nicknames(self, map_author_uid, map_author_name):
+    def update_author_nicknames(
+        self, map_author_uid: str, map_author_name: str
+    ) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -101,7 +104,7 @@ class Database:
             )
             conn.commit()
 
-    def update_map_info(self, map):
+    def update_map_info(self, map: dict[str, any]) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -125,7 +128,7 @@ class Database:
 
     # for discord notifier
 
-    def fetch_maps(self):
+    def fetch_maps(self) -> list[dict[str, str]]:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -139,7 +142,7 @@ class Database:
         else:
             logger.warning("Запись не найдена")
 
-    def get_wr(self, map_uid):
+    def get_wr(self, map_uid: str) -> dict[str, int] | None:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -154,21 +157,21 @@ class Database:
         else:
             return None
 
-    def remove_old_records(self, map_uid):
+    def remove_old_records(self, map_uid: str) -> None:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM Records WHERE map_uid = ?", (map_uid,))
         conn.commit()
         conn.close()
 
-    def update_records(self, map_record, map_uid):
+    def update_records(self, map_record: dict[str, any], map_uid: str) -> None:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
             """
             INSERT INTO Records (map_uid, player_uid, player_name, player_time, player_timestamp, player_place)
             VALUES (?, ?, ?, ?, ?, ?)
-        """,
+            """,
             (
                 map_uid,
                 map_record["accountId"],

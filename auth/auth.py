@@ -22,7 +22,7 @@ oauth_url = "https://api.trackmania.com/api/access_token"
 
 # Authenticates with Ubisoft and stores Nadeo access token,
 #   and Nadeo liveservices token, in .env
-def authenticate():
+def authenticate() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
 
@@ -85,7 +85,7 @@ def authenticate():
 
 
 # Updates the nadeo access token in .env
-def refresh_access_token():
+def refresh_access_token() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
 
@@ -108,7 +108,7 @@ def refresh_access_token():
     set_key(dotenv_path, "NADEO_REFRESH_TOKEN", str(refresh_token))
 
 
-def refresh_live_access_token():
+def refresh_live_access_token() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
 
@@ -135,7 +135,7 @@ def refresh_live_access_token():
         logger.info(f"Refresh live services token: {e}")
 
 
-def refresh_oauth_token():
+def refresh_oauth_token() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
 
@@ -158,7 +158,7 @@ def refresh_oauth_token():
 
 # Decodes the stored nadeo access token,
 #   and refreshes it if needed.
-def check_token_refresh():
+def check_token_refresh() -> None:
     # Normal token
     token = get_nadeo_access_token()
 
@@ -234,31 +234,31 @@ def check_token_refresh():
         # logger.info("check_token_refresh: No oauth token refresh needed")
 
 
-def get_nadeo_access_token():
+def get_nadeo_access_token() -> str:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     return get_key(dotenv_path, ("NADEO_ACCESS_TOKEN"))
 
 
-def get_nadeo_live_access_token():
+def get_nadeo_live_access_token() -> str:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     return get_key(dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN"))
 
 
-def get_oauth_token():
+def get_oauth_token() -> str:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     return get_key(dotenv_path, ("OAUTH_TOKEN"))
 
 
-def get_oauth_expiration():
+def get_oauth_expiration() -> str:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     return get_key(dotenv_path, ("OAUTH_EXPIRATION"))
 
 
-def decode_access_token(token):
+def decode_access_token(token: str) -> tuple[int, int]:
     [_, payload, _] = token.split(".")
 
     # payload might need padding to be able to be decoded

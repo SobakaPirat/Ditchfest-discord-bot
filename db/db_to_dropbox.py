@@ -14,7 +14,7 @@ DROPBOX_REFRESH_TOKEN = get_key(dotenv_path, ("DROPBOX_REFRESH_TOKEN"))
 logger = logging.getLogger(__name__)
 
 
-def refresh_access_token():
+def refresh_access_token() -> dropbox.Dropbox:
     try:
         dbx = dropbox.Dropbox(
             app_key=DROPBOX_KEY,
@@ -29,7 +29,7 @@ def refresh_access_token():
         return None
 
 
-def get_dropbox_client():
+def get_dropbox_client() -> dropbox.Dropbox:
     """Универсальная функция для получения клиента Dropbox"""
     # Сначала пробуем через refresh token
     dbx = refresh_access_token()
@@ -46,7 +46,7 @@ def get_dropbox_client():
         return None
 
 
-def upload_with_direct_link():
+def upload_with_direct_link() -> str:
     """Загружает и возвращает прямую ссылку для скачивания"""
     dbx = get_dropbox_client()
 

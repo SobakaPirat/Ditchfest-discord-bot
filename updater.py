@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 logger.info("Запуск апдейтера")
 
 
-def fetch_campaign():
+def fetch_campaign() -> list[dict]:
     logger.info("Собираем кампании")
     df_campaigns = get_campaigns("0", "DitchFest")["activityList"]
     logger.info("Собираем карты")
@@ -50,14 +50,15 @@ def fetch_campaign():
                 for item in maps_info
             ]
             logger.info("Карты взяты")
+            print(campaign_maps)
             return campaign_maps
 
 
-def update_last_campaign():
+def update_last_campaign() -> None:
     campaign_maps = fetch_campaign()
     for map in campaign_maps:
         if "Royal" in map["type"]:
-            logger.info(map["filename"] + "Royal skipped")
+            logger.info(map["filename"] + " Royal skipped")
             continue
         if "QnSv0bKhCNA1WcSKLiSXirMTo87" in map["map_uid"]:
             map["author_uid"] = "e10286e7-31dd-4127-bdf2-f092fd4e2887"
@@ -65,7 +66,7 @@ def update_last_campaign():
     logger.info("Карты записаны")
 
 
-def update_playercounts():
+def update_playercounts() -> None:
     logger.info("Собираем playercounts")
     for map in db.fetch_maps_uid():
         playercount = get_map_playercount(map["map_uid"])
@@ -74,7 +75,7 @@ def update_playercounts():
     logger.info("Playercounts добавлены")
 
 
-def update_nicknames():
+def update_nicknames() -> None:
     logger.info("Собираем никнеймы")
     authors_uid = db.fetch_authors_uid()
     unique_authors_uid = [item["map_author_uid"] for item in authors_uid]
@@ -86,7 +87,7 @@ def update_nicknames():
     logger.info("Никнеймы записаны")
 
 
-def upload_to_dropbox():
+def upload_to_dropbox() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     DROPBOX_SAVE = get_key(dotenv_path, ("DROPBOX_SAVE")).lower() == "true"
@@ -95,11 +96,12 @@ def upload_to_dropbox():
         logger.info(url)
 
 
-def main():
-    update_last_campaign()
-    update_playercounts()
-    update_nicknames()
-    upload_to_dropbox()
+def main() -> None:
+    fetch_campaign()
+    # update_last_campaign()
+    # update_playercounts()
+    # update_nicknames()
+    # upload_to_dropbox()
 
 
 if __name__ == "__main__":

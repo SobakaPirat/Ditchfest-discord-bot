@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 @retry_on_error()
-def post_record(webhook_url, map, timestamp, map_records):
+def post_record(
+    webhook_url: str, map: dict, timestamp: int, map_records: list[dict]
+) -> None:
     moscow_time = timezone(timedelta(hours=3))
 
     webhook = DiscordWebhook(url=webhook_url, timeout=5)
@@ -65,7 +67,9 @@ def post_record(webhook_url, map, timestamp, map_records):
     logger.info("Сообщение отправлено!")
 
 
-def post_all_discords(map, map_records, timestamp):
+def post_all_discords(
+    map: dict[str, any], map_records: list[dict[str, any]], timestamp: int = None
+) -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
     WEBHOOKS_URL = get_key(dotenv_path, ("WEBHOOKS_URL"))
