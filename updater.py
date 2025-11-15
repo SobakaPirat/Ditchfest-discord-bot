@@ -97,11 +97,10 @@ def upload_to_dropbox() -> None:
 
 
 def main() -> None:
-    fetch_campaign()
-    # update_last_campaign()
-    # update_playercounts()
-    # update_nicknames()
-    # upload_to_dropbox()
+    update_last_campaign()
+    update_playercounts()
+    update_nicknames()
+    upload_to_dropbox()
 
 
 if __name__ == "__main__":
