@@ -140,7 +140,8 @@ class Database:
         if maps:
             return [dict(row) for row in maps]
         else:
-            logger.warning("Запись не найдена")
+            logger.warning("Карты не найдены. Запустите updater.py для сбора карт.")
+            return []
 
     def get_wr(self, map_uid: str) -> dict[str, int] | None:
         conn = sqlite3.connect(self.db_path)
