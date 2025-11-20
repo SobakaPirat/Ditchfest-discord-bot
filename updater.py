@@ -23,18 +23,24 @@ logger = logging.getLogger(__name__)
 logger.info("Запуск апдейтера")
 
 
-def fetch_campaign() -> list[dict]:
+def fetch_campaign(all_campaigns: bool = False) -> list[dict]:
     logger.info("Собираем кампании")
     df_campaigns = get_campaigns("0", "DitchFest")["activityList"]
+
+    valid_campaigns = [camp for camp in df_campaigns if camp["campaignId"] != 0]
+    if not all_campaigns and valid_campaigns:
+        valid_campaigns = [valid_campaigns[0]]
+
     logger.info("Собираем карты")
-    for campaign in df_campaigns:
-        if campaign["campaignId"] != 0:
-            camp = get_campaign(campaign["campaignId"])
-            publication_timestamp = camp["publicationTimestamp"]
-            campaign_name = camp["name"]
-            map_uids = [f"{m['mapUid']}" for m in camp["playlist"]]
-            maps_info = get_maps_info(map_uids)
-            campaign_maps = [
+    campaign_maps = []
+    for campaign in valid_campaigns:
+        camp = get_campaign(campaign["campaignId"])
+        publication_timestamp = camp["publicationTimestamp"]
+        campaign_name = camp["name"]
+        map_uids = [f"{m['mapUid']}" for m in camp["playlist"]]
+        maps_info = get_maps_info(map_uids)
+        campaign_maps.extend(
+            [
                 {
                     "map_uid": item["mapUid"],
                     "thumbnail": item["thumbnailUrl"],
@@ -49,13 +55,13 @@ def fetch_campaign() -> list[dict]:
                 }
                 for item in maps_info
             ]
-            logger.info("Карты взяты")
-            print(campaign_maps)
-            return campaign_maps
+        )
+    logger.info("Карты взяты")
+    return campaign_maps
 
 
-def update_last_campaign() -> None:
-    campaign_maps = fetch_campaign()
+def update_maps(all_campaigns: bool = False) -> None:
+    campaign_maps = fetch_campaign(all_campaigns)
     for map in campaign_maps:
         if "Royal" in map["type"]:
             logger.info(map["filename"] + " Royal skipped")
@@ -71,7 +77,6 @@ def update_playercounts() -> None:
     for map in db.fetch_maps_uid():
         playercount = get_map_playercount(map["map_uid"])
         db.update_maps_playercount(playercount, map["map_uid"])
-        # print(_playercount, _map['map_uid'])
     logger.info("Playercounts добавлены")
 
 
@@ -82,7 +87,6 @@ def update_nicknames() -> None:
     author_nicknames = ids_to_nicknames(unique_authors_uid)
     logger.info("Никнеймы получены")
     for uid, nickname in author_nicknames.items():
-        # print(uid, nickname)
         db.update_author_nicknames(uid, nickname)
     logger.info("Никнеймы записаны")
 
@@ -97,10 +101,13 @@ def upload_to_dropbox() -> None:
 
 
 def main() -> None:
-    update_last_campaign()
+    if db.create_database_if_needed():
+        update_maps(all_campaigns=True)
+    update_maps(all_campaigns=False)
     update_playercounts()
     update_nicknames()
     upload_to_dropbox()
+    logger.info("Завершено!")
 
 
 if __name__ == "__main__":

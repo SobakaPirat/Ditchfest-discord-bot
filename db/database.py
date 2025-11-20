@@ -13,15 +13,16 @@ DATABASE = get_key(dotenv_path, ("DATABASE"))
 class Database:
     def __init__(self) -> None:
         self.db_path = DATABASE
-        self.create_database_if_needed()
 
     def create_database_if_needed(self):
         if not os.path.exists(self.db_path):
             logger.info("Creating database...")
             self.create_database()
             logger.info("Database created.")
+            return True
         else:
             logger.info("Database already exists.")
+            return False
 
     def create_database(self) -> None:
         conn = sqlite3.connect(self.db_path)
