@@ -2,8 +2,8 @@ import argparse
 import logging
 
 from db.database import db
-from embed_template import post_all_discords
-from helpers import id_to_records, ids_to_nicknames
+from utils.embed_template import post_all_discords
+from utils.helpers import id_to_records, ids_to_nicknames
 
 logging.basicConfig(
     level=logging.INFO,
