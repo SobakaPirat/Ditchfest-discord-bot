@@ -1,6 +1,6 @@
 #!/bin/bash
 mkdir -p "logs"
-log_file="logs/script.log"
+log_file="logs/main.log"
 map_counts=(25 50)
 
 while true; do
