@@ -1,6 +1,8 @@
 services:
   app:
     build: .
+    environment:
+      - TZ=Europe/Moscow
     volumes:
       - ./main.sh:/app/main.sh
       - ./.env:/app/.env
