@@ -1,13 +1,29 @@
 services:
-  app:
+  df-app:
     build:
       context: ..
       dockerfile: docker/Dockerfile
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - ./main.sh:/app/main.sh
-      - ./logs:/app/logs
-      - ./database:/app/database
-      - ./.env:/app/.env
+      - ../main.sh:/app/main.sh
+      - ../logs:/app/logs
+      - ../database:/app/database
+      - ../.env:/app/.env
     restart: unless-stopped
+    command: ["/bin/bash", "-c", "chmod +x main.sh && ./main.sh"]
+
+  df-updater:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - ../updater.sh:/app/updater.sh
+      - ../logs:/app/logs
+      - ../database:/app/database
+      - ../.env:/app/.env
+    restart: unless-stopped
+    command: ["/bin/bash", "-c", "chmod +x updater.sh && ./updater.sh"]
+    #command: ["sh", "-c", "echo '*/1 * * * * python3 updater.py >> logs/updater.log 2>&1' | crontab - && crontab -l && cron -f"]
