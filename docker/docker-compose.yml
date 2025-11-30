@@ -1,10 +1,13 @@
 services:
   app:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     environment:
       - TZ=Europe/Moscow
     volumes:
       - ./main.sh:/app/main.sh
-      - ./.env:/app/.env
       - ./logs:/app/logs
+      - ./database:/app/database
+      - ./.env:/app/.env
     restart: unless-stopped

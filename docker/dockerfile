@@ -13,9 +13,7 @@ COPY updater.py .
 COPY main.py .
 COPY main.sh .
 COPY requirements.txt .
-COPY auth ./auth/
-COPY db ./db/
-COPY utils ./utils/
+COPY src/ ./src/
 
 # Устанавливаем Python зависимости
 RUN pip install --no-cache-dir -r requirements.txt
@@ -25,6 +23,8 @@ RUN chmod +x main.sh
 
 # Добавляем задание в crontab
 RUN echo "0 5 * * * cd /app && python3 updater.py >> updater.log 2>&1" | crontab -
+
+RUN ls -la && echo "=== After src/ ===" && ls
 
 # Запускаем основной скрипт
 CMD ["./main.sh"]
