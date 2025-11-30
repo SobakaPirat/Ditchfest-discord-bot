@@ -2,9 +2,9 @@ import logging
 
 from dotenv import find_dotenv, get_key, load_dotenv
 
-from db.database import db
-from db.db_to_dropbox import upload_with_direct_link
-from utils.helpers import (
+from src.db.database import db
+from src.db.db_to_dropbox import upload_with_direct_link
+from src.utils.helpers import (
     get_campaign,
     get_campaigns,
     get_map_playercount,

@@ -6,7 +6,7 @@ import pycountry
 import requests
 from dotenv import find_dotenv, get_key, load_dotenv
 
-from auth.auth import check_token_refresh
+from src.auth.auth import check_token_refresh
 
 logger = logging.getLogger(__name__)
 

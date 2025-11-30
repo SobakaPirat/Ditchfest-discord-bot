@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from discord_webhook import DiscordEmbed, DiscordWebhook
 from dotenv import find_dotenv, get_key, load_dotenv
 
-from utils.helpers import (
+from src.utils.helpers import (
     get_nadeo_zones,
     get_player_flag,
     number_to_time,
