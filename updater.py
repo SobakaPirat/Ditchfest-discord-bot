@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
 from dotenv import find_dotenv, get_key, load_dotenv
 
@@ -13,11 +14,15 @@ from src.utils.helpers import (
 )
 
 # Set up logging
+handler = RotatingFileHandler(
+    filename="logs/updater.log", maxBytes=1024 * 1024, encoding="utf-8"
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.StreamHandler()],
+    handlers=[handler],
 )
 logger = logging.getLogger(__name__)
 logger.info("Запуск апдейтера")
