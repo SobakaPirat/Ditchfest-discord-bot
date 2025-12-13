@@ -1,15 +1,20 @@
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 
 from src.db.database import db
 from src.utils.embed_template import post_all_discords
 from src.utils.helpers import id_to_records, ids_to_nicknames
 
+handler = RotatingFileHandler(
+    filename="logs/main.log", maxBytes=1024 * 1024, encoding="utf-8"
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.StreamHandler()],
+    handlers=[handler],
 )
 
 logger = logging.getLogger(__name__)
