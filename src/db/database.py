@@ -66,6 +66,16 @@ class Database:
         )
         conn.close()
 
+    # for notifier
+
+    def update_map_wr_timestamp(self, timestamp: int, map_uid: str) -> None:
+        conn = self.get_conn()
+        conn.execute(
+            text("UPDATE Maps SET map_wr_timestamp = :wr WHERE map_uid = :uid"),
+            {"wr": timestamp, "uid": map_uid},
+        )
+        conn.close()
+
     # for updater
 
     def fetch_authors_uid(self) -> list[dict[str, str]]:
@@ -137,7 +147,7 @@ class Database:
         conn = self.get_conn()
         res = conn.execute(
             text(
-                "SELECT map_uid, map_name, map_thumbnail, map_author_name FROM Maps ORDER BY map_date DESC"
+                "SELECT map_uid, map_name, map_thumbnail, map_author_name, map_wr_timestamp FROM Maps ORDER BY map_date DESC"
             )
         )
         rows = res.fetchall()

@@ -43,7 +43,7 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
 
 
 @retry_on_error()
-def get_map_records(map_uid: str, offset: int) -> list:
+def get_map_records(map_uid: str, length: int, offset: int) -> list:
     check_token_refresh()
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
@@ -96,7 +96,7 @@ def id_to_records(map_uid: str) -> list[dict]:
     stop = False
     offset = 0
     while not stop:
-        map_records = get_map_records(map_uid, offset)
+        map_records = get_map_records(map_uid, 100, offset)
         current_records.extend(map_records)
         # print(len(map_records))
         if len(map_records) < 100:
