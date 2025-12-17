@@ -98,10 +98,11 @@ def id_to_records(map_uid: str) -> list[dict]:
     while not stop:
         map_records = get_map_records(map_uid, 100, offset)
         current_records.extend(map_records)
-        # print(len(map_records))
-        if len(map_records) < 100:
+        print(len(map_records))
+        print(offset)
+        if len(map_records) < 100 or offset >= 10000:
             stop = True
-        # time.sleep(0.5)
+        time.sleep(0.5)
         offset += 100
     logger.info(f"{len(current_records)} Рекордов получено")
     return current_records
