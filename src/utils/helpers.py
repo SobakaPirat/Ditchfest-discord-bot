@@ -101,7 +101,7 @@ def id_to_records(map_uid: str) -> list[dict]:
         map_records = get_map_records(map_uid, 100, offset)
         current_records.extend(map_records)
         # print(len(map_records))
-        if len(map_records) < 100 or offset >= 10000:
+        if len(map_records) < 100 or offset >= 9900:
             stop = True
         time.sleep(0.5)
         offset += 100
