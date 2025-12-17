@@ -35,17 +35,18 @@ class Database:
             text(
                 """
             CREATE TABLE IF NOT EXISTS Maps (
-                map_uid         TEXT    PRIMARY KEY    UNIQUE,
-                map_date        TEXT,
-                map_author_uid  TEXT,
-                map_author_name TEXT,
-                map_name        TEXT,
-                map_playercount INTEGER,
-                map_thumbnail   TEXT    UNIQUE,
-                map_at          INTEGER,
-                map_gold        INTEGER,
-                map_silver      INTEGER,
-                map_bronze      INTEGER
+                map_uid          TEXT    PRIMARY KEY    UNIQUE,
+                map_date         TEXT,
+                map_author_uid   TEXT,
+                map_author_name  TEXT,
+                map_name         TEXT,
+                map_playercount  INTEGER,
+                map_thumbnail    TEXT    UNIQUE,
+                map_at           INTEGER,
+                map_gold         INTEGER,
+                map_silver       INTEGER,
+                map_bronze       INTEGER,
+                map_wr_timestamp INTEGER
             )
             """
             )
