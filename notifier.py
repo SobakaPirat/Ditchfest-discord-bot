@@ -45,6 +45,8 @@ def main() -> None:
             post_all_discords(
                 map=map, map_records=map_records, timestamp=map["map_wr_timestamp"]
             )
+
+        if new_wr["timestamp"] != map["map_wr_timestamp"]:
             # Запись timestamp в дб
             logging.info("Запись в дб")
             for record in map_records:
