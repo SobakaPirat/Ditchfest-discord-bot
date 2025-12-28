@@ -15,7 +15,7 @@ from src.utils.helpers import (
 
 # Set up logging
 handler = RotatingFileHandler(
-    filename="logs/maps.log", maxBytes=1024 * 1024, encoding="utf-8"
+    filename="logs/maps.log", maxBytes=1024 * 1024, encoding="utf-8", backupCount=2
 )
 
 logging.basicConfig(

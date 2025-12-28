@@ -6,7 +6,7 @@ from src.utils.embed_template import post_all_discords
 from src.utils.helpers import get_map_records, ids_to_nicknames
 
 handler = RotatingFileHandler(
-    filename="logs/notifier.log", maxBytes=1024 * 1024, encoding="utf-8"
+    filename="logs/notifier.log", maxBytes=1024 * 1024, encoding="utf-8", backupCount=2
 )
 
 logging.basicConfig(

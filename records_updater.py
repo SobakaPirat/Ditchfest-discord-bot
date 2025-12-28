@@ -5,7 +5,7 @@ from src.db.database import db
 from src.utils.helpers import id_to_records, ids_to_nicknames
 
 handler = RotatingFileHandler(
-    filename="logs/records.log", maxBytes=1024 * 1024, encoding="utf-8"
+    filename="logs/records.log", maxBytes=1024 * 1024, encoding="utf-8", backupCount=2
 )
 
 logging.basicConfig(
