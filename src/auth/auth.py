@@ -11,12 +11,8 @@ logger = logging.getLogger(__name__)
 
 ubi_url = "https://public-ubiservices.ubi.com/v3/profiles/sessions"
 ubi_appid = "86263886-327a-4328-ac69-527f0d20a237"
-nadeo_url = (
-    "https://prod.trackmania.core.nadeo.online/v2/authentication/token/ubiservices"
-)
-nadeo_refresh_url = (
-    "https://prod.trackmania.core.nadeo.online/v2/authentication/token/refresh"
-)
+nadeo_url = "https://prod.trackmania.core.nadeo.online/v2/authentication/token/basic"
+nadeo_refresh_url = "https://prod.trackmania.core.nadeo.online/v2/authentication/token/refresh"
 oauth_url = "https://api.trackmania.com/api/access_token"
 
 
@@ -32,30 +28,16 @@ def authenticate() -> None:
     client_id = get_key(dotenv_path, ("CLIENT_ID"))
     client_secret = get_key(dotenv_path, ("CLIENT_SECRET"))
 
-    # Get ubisoft authentication ticket
-    ubi_headers = {
-        "Content-Type": "application/json",
-        "Ubi-AppId": ubi_appid,
-        "User-Agent": user_agent,
-    }
     ubi_auth = HTTPBasicAuth(login, password)
 
-    ubi_res = requests.post(ubi_url, headers=ubi_headers, auth=ubi_auth)
-    ubi_res = ubi_res.json()
-
-    # Now we have a ticket to use for authentication to Nadeo services
-    ticket = ubi_res["ticket"]
-
     # Get nadeo access token
-
     nadeo_headers = {
         "Content-Type": "application/json",
-        "Authorization": "ubi_v1 t=" + ticket,
         "User-Agent": user_agent,
     }
-    # audience NadeoServices is used by default, so no need to specify audience in request body
 
-    nadeo_res = requests.post(nadeo_url, headers=nadeo_headers)
+    # audience NadeoServices is used by default, so no need to specify audience in request body
+    nadeo_res = requests.post(nadeo_url, headers=nadeo_headers, auth=ubi_auth)
     nadeo_res = nadeo_res.json()
 
     access_token = nadeo_res["accessToken"]
@@ -65,7 +47,7 @@ def authenticate() -> None:
 
     # Another nadeo request with "NadeoLiveServices" audience
     nadeo_body = {"audience": "NadeoLiveServices"}
-    nadeo_res = requests.post(nadeo_url, headers=nadeo_headers, json=nadeo_body)
+    nadeo_res = requests.post(nadeo_url, headers=nadeo_headers, json=nadeo_body, auth=ubi_auth)
     nadeo_res = nadeo_res.json()
 
     access_token = nadeo_res["accessToken"]
