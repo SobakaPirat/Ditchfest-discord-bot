@@ -12,6 +12,8 @@ from src.auth.auth import check_token_refresh
 
 logger = logging.getLogger(__name__)
 
+REQUEST_TIMEOUT = (3.05, 30)
+
 
 def retry_on_error(max_retries=10, delay=2, backoff=2):
     def decorator(func):
@@ -23,6 +25,27 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
             while retries < max_retries:
                 try:
                     return func(*args, **kwargs)
+                except requests.exceptions.Timeout:
+                    retries += 1
+                    logger.warning(
+                        f"Таймаут запроса в {func.__name__}. Попытка {retries}/{max_retries}"
+                    )
+                    if retries >= max_retries:
+                        raise
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+                except requests.exceptions.SSLError as e:
+                    logger.error(f"SSL ошибка в {func.__name__}: {e}")
+                    raise
+                except requests.exceptions.ConnectionError:
+                    retries += 1
+                    logger.warning(
+                        f"Ошибка соединения в {func.__name__}. Попытка {retries}/{max_retries}"
+                    )
+                    if retries >= max_retries:
+                        raise
+                    time.sleep(current_delay)
+                    current_delay *= backoff
                 except Exception as e:
                     retries += 1
                     if retries >= max_retries:
@@ -32,7 +55,7 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
                         raise
 
                     logger.warning(
-                        f"Попытка {retries}/{max_retries} не удалась. Ошибка: {e}. Повтор через {current_delay} сек..."
+                        f"Попытка {retries}/{max_retries} не удалась в {func.__name__}. Ошибка: {e}. Повтор через {current_delay} сек..."
                     )
                     time.sleep(current_delay)
                     current_delay *= backoff
@@ -60,7 +83,7 @@ def get_map_records(map_uid: str, length: int, offset: int) -> list:
         "User-Agent": USER_AGENT,
     }
 
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     logger.info(f"Рекорды получены: {map_uid}")
     # time.sleep(0.5)
@@ -80,7 +103,7 @@ def get_account_name(uids: list[str]) -> dict[str, str]:
         url += "&accountId[]=" + uid
     headers = {"Authorization": f"Bearer {OAUTH_TOKEN}", "User-Agent": USER_AGENT}
 
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     # time.sleep(0.5)
     return res
@@ -150,7 +173,7 @@ def get_maps_info(map_uids: list[str]) -> dict[str, any]:
         "Authorization": "nadeo_v1 t=" + NADEO_ACCESS_TOKEN,
         "User-Agent": USER_AGENT,
     }
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     return res
 
@@ -169,7 +192,7 @@ def get_campaign(campaign_id: int) -> dict:
         "Authorization": "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
         "User-Agent": USER_AGENT,
     }
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     return res["campaign"]
 
@@ -188,7 +211,7 @@ def get_campaigns(offset: int, name: str) -> dict:
         "Authorization": "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
         "User-Agent": USER_AGENT,
     }
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     return res
 
@@ -231,7 +254,7 @@ def get_map_playercount(map_uid: str) -> int:
         "User-Agent": USER_AGENT,
     }
 
-    res = requests.get(complete_url, headers=headers)
+    res = requests.get(complete_url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
 
     scores = res["tops"][0]["top"]
@@ -256,7 +279,7 @@ def get_nadeo_zones() -> list[dict]:
         "Authorization": "nadeo_v1 t=" + NADEO_ACCESS_TOKEN,
         "User-Agent": USER_AGENT,
     }
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     res = res.json()
     logger.info("Зоны надео получены")
     return res
