@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 
@@ -35,17 +37,18 @@ class Database:
             text(
                 """
             CREATE TABLE IF NOT EXISTS Maps (
-                map_uid         TEXT    PRIMARY KEY    UNIQUE,
-                map_date        TEXT,
-                map_author_uid  TEXT,
-                map_author_name TEXT,
-                map_name        TEXT,
-                map_playercount INTEGER,
-                map_thumbnail   TEXT    UNIQUE,
-                map_at          INTEGER,
-                map_gold        INTEGER,
-                map_silver      INTEGER,
-                map_bronze      INTEGER
+                map_uid          TEXT    PRIMARY KEY    UNIQUE,
+                map_date         TEXT,
+                map_author_uid   TEXT,
+                map_author_name  TEXT,
+                map_name         TEXT,
+                map_playercount  INTEGER,
+                map_thumbnail    TEXT    UNIQUE,
+                map_at           INTEGER,
+                map_gold         INTEGER,
+                map_silver       INTEGER,
+                map_bronze       INTEGER,
+                map_wr_timestamp INTEGER
             )
             """
             )
@@ -63,6 +66,16 @@ class Database:
             )
             """
             )
+        )
+        conn.close()
+
+    # for notifier
+
+    def update_map_wr_timestamp(self, timestamp: int, map_uid: str) -> None:
+        conn = self.get_conn()
+        conn.execute(
+            text("UPDATE Maps SET map_wr_timestamp = :wr WHERE map_uid = :uid"),
+            {"wr": timestamp, "uid": map_uid},
         )
         conn.close()
 
@@ -137,7 +150,7 @@ class Database:
         conn = self.get_conn()
         res = conn.execute(
             text(
-                "SELECT map_uid, map_name, map_thumbnail, map_author_name FROM Maps ORDER BY map_date DESC"
+                "SELECT map_uid, map_name, map_thumbnail, map_author_name, map_wr_timestamp FROM Maps ORDER BY map_date DESC"
             )
         )
         rows = res.fetchall()
