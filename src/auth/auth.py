@@ -94,10 +94,10 @@ def refresh_live_access_token() -> None:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
 
+    refresh_token = get_key(dotenv_path, ("NADEO_LIVESERVICES_REFRESH_TOKEN"))
     user_agent = get_key(dotenv_path, ("USER_AGENT"))
 
     # LiveServices
-    refresh_token = get_key(dotenv_path, ("NADEO_LIVESERVICES_REFRESH_TOKEN"))
     nadeo_headers = {
         "Content-Type": "application/json",
         "Authorization": "nadeo_v1 t=" + refresh_token,
@@ -142,7 +142,7 @@ def refresh_oauth_token() -> None:
 #   and refreshes it if needed.
 def check_token_refresh() -> None:
     # Normal token
-    token = get_nadeo_access_token()
+    token = get_dotenv_key("NADEO_ACCESS_TOKEN")
 
     # Make sure token is not empty
     if token == "":
@@ -168,7 +168,7 @@ def check_token_refresh() -> None:
         # logger.info("check_token_refresh: No token refresh needed")
 
     # live
-    token = get_nadeo_live_access_token()
+    token = get_dotenv_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
 
     # Make sure token is not empty
     if token == "":
@@ -192,8 +192,8 @@ def check_token_refresh() -> None:
         # logger.info("check_token_refresh: No LIVE token refresh needed")
 
     # oauth token
-    token = get_oauth_token()
-    expiration = int(get_oauth_expiration())
+    token = get_dotenv_key("OAUTH_TOKEN")
+    expiration = int(get_dotenv_key("OAUTH_EXPIRATION"))
     # Make sure token is not empty
     if token == "":
         authenticate()
@@ -216,28 +216,10 @@ def check_token_refresh() -> None:
         # logger.info("check_token_refresh: No oauth token refresh needed")
 
 
-def get_nadeo_access_token() -> str:
+def get_dotenv_key(key) -> str:
     dotenv_path = find_dotenv()
     load_dotenv(dotenv_path)
-    return get_key(dotenv_path, ("NADEO_ACCESS_TOKEN"))
-
-
-def get_nadeo_live_access_token() -> str:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    return get_key(dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN"))
-
-
-def get_oauth_token() -> str:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    return get_key(dotenv_path, ("OAUTH_TOKEN"))
-
-
-def get_oauth_expiration() -> str:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    return get_key(dotenv_path, ("OAUTH_EXPIRATION"))
+    return get_key(dotenv_path, (key))
 
 
 def decode_access_token(token: str) -> tuple[int, int]:
