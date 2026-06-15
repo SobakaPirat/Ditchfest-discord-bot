@@ -1,5 +1,9 @@
 import logging
+import os
 from logging.handlers import RotatingFileHandler
+
+os.makedirs("logs", exist_ok=True)
+
 
 from src.db.database import db
 from src.utils.helpers import id_to_records, ids_to_nicknames

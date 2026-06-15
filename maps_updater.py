@@ -1,5 +1,9 @@
 import logging
+import os
 from logging.handlers import RotatingFileHandler
+
+os.makedirs("logs", exist_ok=True)
+
 
 from dotenv import find_dotenv, get_key, load_dotenv
 
