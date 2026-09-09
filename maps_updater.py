@@ -1,9 +1,10 @@
 import logging
-import os
-from logging.handlers import RotatingFileHandler
 
-os.makedirs("logs", exist_ok=True)
+from src.utils.logger_config import setup_logging
 
+setup_logging("logs/maps.log")
+logger = logging.getLogger(__name__)
+logger.info("Запуск апдейтера карт")
 
 from dotenv import find_dotenv, get_key, load_dotenv
 
@@ -16,20 +17,6 @@ from src.utils.helpers import (
     get_maps_info,
     ids_to_nicknames,
 )
-
-# Set up logging
-handler = RotatingFileHandler(
-    filename="logs/maps.log", maxBytes=1024 * 1024, encoding="utf-8", backupCount=2
-)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[handler],
-)
-logger = logging.getLogger(__name__)
-logger.info("Запуск апдейтера")
 
 
 def fetch_campaign(all_campaigns: bool = False) -> list[dict]:
