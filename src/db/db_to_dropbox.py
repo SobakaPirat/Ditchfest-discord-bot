@@ -5,7 +5,7 @@ from dotenv import find_dotenv, get_key, load_dotenv
 
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-DATABASE = get_key(dotenv_path, ("DATABASE"))
+DATABASE = "database/database.db"
 DROPBOX_KEY = get_key(dotenv_path, ("DROPBOX_KEY"))
 DROPBOX_SECRET = get_key(dotenv_path, ("DROPBOX_SECRET"))
 DROPBOX_TOKEN = get_key(dotenv_path, ("DROPBOX_TOKEN"))

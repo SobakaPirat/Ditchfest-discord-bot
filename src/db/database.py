@@ -17,15 +17,12 @@ class Database:
     def get_conn(self):
         return sqlite3.connect(self.db_path)
 
-    def create_database_if_needed(self):
+    def check_db_exist(self):
         if not os.path.exists(self.db_path):
-            logger.info("Creating database...")
-            self.create_database()
-            logger.info("Database created.")
-            return True
+            return False
         else:
             logger.info("Database already exists.")
-            return False
+            return True
 
     def create_database(self) -> None:
         os.makedirs("database", exist_ok=True)
