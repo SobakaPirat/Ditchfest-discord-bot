@@ -5,17 +5,13 @@ import os
 import sqlite3
 
 import dataset
-from dotenv import find_dotenv, get_key, load_dotenv
 
 logger = logging.getLogger(__name__)
-dotenv_path = find_dotenv()
-load_dotenv(dotenv_path)
-DATABASE = get_key(dotenv_path, ("DATABASE"))
 
 
 class Database:
     def __init__(self) -> None:
-        self.db_path = DATABASE
+        self.db_path = "database/database.db"
         self.db = dataset.connect(f"sqlite:///{self.db_path}")
 
     def get_conn(self):
@@ -32,9 +28,10 @@ class Database:
             return False
 
     def create_database(self) -> None:
+        os.makedirs("database", exist_ok=True)
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Maps (
                 map_uid          TEXT    PRIMARY KEY    UNIQUE,
@@ -51,7 +48,7 @@ class Database:
                 map_wr_timestamp INTEGER
             )
         """)
-        
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Records (
                 map_uid          TEXT    NOT NULL    REFERENCES Maps (map_uid) ON DELETE CASCADE,
@@ -62,7 +59,7 @@ class Database:
                 player_place     INTEGER
             )
         """)
-        
+
         conn.commit()
         conn.close()
 
@@ -73,7 +70,7 @@ class Database:
         cursor = conn.cursor()
         cursor.execute(
             "UPDATE Maps SET map_wr_timestamp = ? WHERE map_uid = ?",
-            (timestamp, map_uid)
+            (timestamp, map_uid),
         )
         conn.commit()
         conn.close()
@@ -109,7 +106,7 @@ class Database:
         cursor = conn.cursor()
         cursor.execute(
             "UPDATE Maps SET map_playercount = ? WHERE map_uid = ?",
-            (map_playercount, map_uid)
+            (map_playercount, map_uid),
         )
         conn.commit()
         conn.close()
@@ -121,7 +118,7 @@ class Database:
         cursor = conn.cursor()
         cursor.execute(
             "UPDATE Maps SET map_author_name = ? WHERE map_author_uid = ?",
-            (map_author_name, map_author_uid)
+            (map_author_name, map_author_uid),
         )
         conn.commit()
         conn.close()
@@ -129,20 +126,23 @@ class Database:
     def update_map_info(self, map: dict[str, any]) -> None:
         conn = self.get_conn()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT OR REPLACE INTO Maps (map_uid, map_name, map_author_uid, map_date, map_thumbnail, map_at, map_gold, map_silver, map_bronze)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            map["map_uid"],
-            map["filename"],
-            map["author_uid"],
-            map["date"],
-            map["thumbnail"],
-            map["author_time"],
-            map["gold_time"],
-            map["silver_time"],
-            map["bronze_time"]
-        ))
+        """,
+            (
+                map["map_uid"],
+                map["filename"],
+                map["author_uid"],
+                map["date"],
+                map["thumbnail"],
+                map["author_time"],
+                map["gold_time"],
+                map["silver_time"],
+                map["bronze_time"],
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -165,7 +165,7 @@ class Database:
                     "map_name": row[1],
                     "map_thumbnail": row[2],
                     "map_author_name": row[3],
-                    "map_wr_timestamp": row[4]
+                    "map_wr_timestamp": row[4],
                 }
                 for row in rows
             ]
@@ -176,18 +176,21 @@ class Database:
     def get_wr(self, map_uid: str) -> dict[str, int] | None:
         conn = self.get_conn()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT player_name, player_time, player_timestamp 
             FROM Records 
             WHERE map_uid = ? AND player_place = 1
-        """, (map_uid,))
+        """,
+            (map_uid,),
+        )
         record = cursor.fetchone()
         conn.close()
         if record:
             return {
                 "player_name": record[0],
                 "player_time": record[1],
-                "player_timestamp": record[2]
+                "player_timestamp": record[2],
             }
         else:
             return None
@@ -202,17 +205,20 @@ class Database:
     def update_records(self, map_record: dict[str, any], map_uid: str) -> None:
         conn = self.get_conn()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO Records (map_uid, player_uid, player_name, player_time, player_timestamp, player_place)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            map_uid,
-            map_record["accountId"],
-            map_record["name"],
-            map_record["score"],
-            map_record["timestamp"],
-            map_record["position"]
-        ))
+        """,
+            (
+                map_uid,
+                map_record["accountId"],
+                map_record["name"],
+                map_record["score"],
+                map_record["timestamp"],
+                map_record["position"],
+            ),
+        )
         conn.commit()
         conn.close()
 
