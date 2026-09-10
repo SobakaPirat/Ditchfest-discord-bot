@@ -1,29 +1,24 @@
 services:
-  df-app:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+  df-notifier:
+    container_name: df-notifier
+    image: ditch-bot:0.2 
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - ../main.sh:/app/main.sh
-      - ../logs:/app/logs
-      - ../database:/app/database
-      - ../.env:/app/.env
+      - ../logs:/app/logs           # Папка для логов (опционально)
+      - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
+      - ../.env:/app/.env           # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: ["/bin/bash", "-c", "chmod +x main.sh && ./main.sh"]
+    command: ["uv", "run", "notifier.py"]
 
   df-updater:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    container_name: df-updater
+    image: ditch-bot:0.2 
     environment:
-      - TZ=Europe/Moscow
+      - TZ=Europe/Moscow            # Тайм зона для логов
     volumes:
-      - ../updater.sh:/app/updater.sh
-      - ../logs:/app/logs
-      - ../database:/app/database
-      - ../.env:/app/.env
+      - ../logs:/app/logs           # Папка для логов (опционально)
+      - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
+      - ../.env:/app/.env           # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: ["/bin/bash", "-c", "chmod +x updater.sh && ./updater.sh"]
-    #command: ["sh", "-c", "echo '*/1 * * * * python3 updater.py >> logs/updater.log 2>&1' | crontab - && crontab -l && cron -f"]
+    command: ["uv", "run", "updater.py"]

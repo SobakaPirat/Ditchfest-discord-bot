@@ -1,6 +1,14 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
+
+# Устанавливаем uv
+RUN pip install --no-cache-dir uv
+
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY updater.py main.py requirements.txt ./
+
+# Копируем файлы проекта
+COPY pyproject.toml uv.lock ./
+COPY updater.py notifier.py ./
 COPY src/ ./src/
+
+# Устанавливаем зависимости через uv
+RUN uv sync --frozen --no-dev
