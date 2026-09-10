@@ -13,6 +13,7 @@ from src.utils.helpers import (
 )
 
 logger = logging.getLogger(__name__)
+logger.info("Запуск апдейтера карт")
 
 
 def fetch_campaign(all_campaigns: bool = False) -> list[dict]:

@@ -4,6 +4,7 @@ from src.db.database import db
 from src.utils.helpers import id_to_records, ids_to_nicknames
 
 logger = logging.getLogger(__name__)
+logger.info("Запуск апдейтера рекордов")
 
 
 def get_new_records() -> None:
