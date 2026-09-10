@@ -1,17 +1,12 @@
 import logging
 
-from src.utils.logger_config import setup_logging
-
-setup_logging("logs/records.log")
-logger = logging.getLogger(__name__)
-logger.info("Запуск апдейтера рекордов")
-
-
 from src.db.database import db
 from src.utils.helpers import id_to_records, ids_to_nicknames
 
+logger = logging.getLogger(__name__)
 
-def main() -> None:
+
+def get_new_records() -> None:
     maps_info = db.fetch_maps()
     for map in maps_info:
         logger.info("Карта: " + map["map_name"])
@@ -32,7 +27,3 @@ def main() -> None:
         db.remove_old_records(map["map_uid"])
         for record in map_records:
             db.update_records(record, map["map_uid"])
-
-
-if __name__ == "__main__":
-    main()

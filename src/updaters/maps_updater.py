@@ -1,11 +1,5 @@
 import logging
 
-from src.utils.logger_config import setup_logging
-
-setup_logging("logs/maps.log")
-logger = logging.getLogger(__name__)
-logger.info("Запуск апдейтера карт")
-
 from dotenv import find_dotenv, get_key, load_dotenv
 
 from src.db.database import db
@@ -17,6 +11,8 @@ from src.utils.helpers import (
     get_maps_info,
     ids_to_nicknames,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_campaign(all_campaigns: bool = False) -> list[dict]:
@@ -96,7 +92,7 @@ def upload_to_dropbox() -> None:
         logger.info(url)
 
 
-def main() -> None:
+def get_new_maps() -> None:
     if not db.db_exist():
         db.create_database()
         update_maps(all_campaigns=True)
@@ -107,7 +103,3 @@ def main() -> None:
     update_nicknames()
     upload_to_dropbox()
     logger.info("Завершено!")
-
-
-if __name__ == "__main__":
-    main()
