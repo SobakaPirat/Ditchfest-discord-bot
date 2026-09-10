@@ -4,15 +4,12 @@ import logging
 import os
 import sqlite3
 
-import dataset
-
 logger = logging.getLogger(__name__)
 
 
 class Database:
     def __init__(self) -> None:
         self.db_path = "database/database.db"
-        self.db = dataset.connect(f"sqlite:///{self.db_path}")
 
     def get_conn(self):
         return sqlite3.connect(self.db_path)
