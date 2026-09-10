@@ -17,12 +17,19 @@ class Database:
     def get_conn(self):
         return sqlite3.connect(self.db_path)
 
-    def check_db_exist(self):
+    def db_exist(self):
         if not os.path.exists(self.db_path):
             return False
         else:
-            logger.info("Database already exists.")
+            logger.info("Database already exists")
             return True
+
+    def maps_is_empty(self):
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM Maps")
+        count = cursor.fetchone()[0]
+        return count == 0
 
     def create_database(self) -> None:
         os.makedirs("database", exist_ok=True)

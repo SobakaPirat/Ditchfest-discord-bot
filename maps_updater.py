@@ -97,8 +97,10 @@ def upload_to_dropbox() -> None:
 
 
 def main() -> None:
-    if not db.check_db_exist():
+    if not db.db_exist():
         db.create_database()
+        update_maps(all_campaigns=True)
+    if db.maps_is_empty():
         update_maps(all_campaigns=True)
     update_maps(all_campaigns=False)
     update_playercounts()

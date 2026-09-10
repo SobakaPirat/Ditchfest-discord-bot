@@ -151,7 +151,6 @@ def check_token_refresh() -> None:
 
     # Make sure token is not empty
     if token == "":
-        print("test")
         authenticate()
         logger.info("check_token_refresh: Authenticated")
         return
