@@ -1,9 +1,8 @@
 import logging
 
-from dotenv import find_dotenv, get_key, load_dotenv
-
 from src.db.database import db
 from src.db.db_to_dropbox import upload_with_direct_link
+from src.utils.config import get_env_key
 from src.utils.helpers import (
     get_campaign,
     get_campaigns,
@@ -67,9 +66,13 @@ def update_maps(all_campaigns: bool = False) -> None:
 
 def update_playercounts() -> None:
     logger.info("Собираем playercounts")
-    for map in db.fetch_maps_uid():
+    map_uids = db.fetch_maps_uid()
+    count = 1
+    for map in map_uids:
+        logger.info(f"Playercounts: {count}/{len(map_uids)}")
         playercount = get_map_playercount(map["map_uid"])
         db.update_maps_playercount(playercount, map["map_uid"])
+        count += 1
     logger.info("Playercounts добавлены")
 
 
@@ -85,9 +88,7 @@ def update_nicknames() -> None:
 
 
 def upload_to_dropbox() -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    DROPBOX_SAVE = get_key(dotenv_path, ("DROPBOX_SAVE")).lower() == "true"
+    DROPBOX_SAVE = get_env_key("DROPBOX_SAVE").lower() == "true"
     if DROPBOX_SAVE:
         url = upload_with_direct_link()
         logger.info(url)

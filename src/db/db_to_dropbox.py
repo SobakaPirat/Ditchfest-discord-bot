@@ -1,15 +1,14 @@
 import logging
 
 import dropbox
-from dotenv import find_dotenv, get_key, load_dotenv
 
-dotenv_path = find_dotenv()
-load_dotenv(dotenv_path)
+from src.utils.config import get_env_key
+
 DATABASE = "database/database.db"
-DROPBOX_KEY = get_key(dotenv_path, ("DROPBOX_KEY"))
-DROPBOX_SECRET = get_key(dotenv_path, ("DROPBOX_SECRET"))
-DROPBOX_TOKEN = get_key(dotenv_path, ("DROPBOX_TOKEN"))
-DROPBOX_REFRESH_TOKEN = get_key(dotenv_path, ("DROPBOX_REFRESH_TOKEN"))
+DROPBOX_KEY = get_env_key("DROPBOX_KEY")
+DROPBOX_SECRET = get_env_key("DROPBOX_SECRET")
+DROPBOX_TOKEN = get_env_key("DROPBOX_TOKEN")
+DROPBOX_REFRESH_TOKEN = get_env_key("DROPBOX_REFRESH_TOKEN")
 
 logger = logging.getLogger(__name__)
 

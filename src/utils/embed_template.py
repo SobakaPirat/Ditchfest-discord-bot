@@ -2,8 +2,8 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from discord_webhook import DiscordEmbed, DiscordWebhook
-from dotenv import find_dotenv, get_key, load_dotenv
 
+from src.utils.config import get_env_key
 from src.utils.helpers import (
     get_nadeo_zones,
     get_player_flag,
@@ -75,7 +75,5 @@ def post_record(
 def post_all_discords(
     map: dict[str, any], map_records: list[dict[str, any]], timestamp: int = None
 ) -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    WEBHOOKS_URL = get_key(dotenv_path, ("WEBHOOKS_URL"))
+    WEBHOOKS_URL = get_env_key("WEBHOOKS_URL")
     post_record(WEBHOOKS_URL, map, timestamp, map_records)

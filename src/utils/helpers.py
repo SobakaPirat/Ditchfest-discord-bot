@@ -6,9 +6,9 @@ from functools import wraps
 
 import pycountry
 import requests
-from dotenv import find_dotenv, get_key, load_dotenv
 
 from src.auth.auth import check_token_refresh
+from src.utils.config import get_env_key
 
 logger = logging.getLogger(__name__)
 
@@ -70,12 +70,8 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
 @retry_on_error()
 def get_map_records(map_uid: str, length: int, offset: int) -> list:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_LIVESERVICES_ACCESS_TOKEN = get_key(
-        dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN")
-    )
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_LIVESERVICES_ACCESS_TOKEN = get_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
 
     url = f"https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/Personal_Best/map/{map_uid}/top?length=100&onlyWorld=1&offset={offset}"
     headers = {
@@ -93,10 +89,8 @@ def get_map_records(map_uid: str, length: int, offset: int) -> list:
 @retry_on_error()
 def get_account_name(uids: list[str]) -> dict[str, str]:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    OAUTH_TOKEN = get_key(dotenv_path, ("OAUTH_TOKEN"))
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    OAUTH_TOKEN = get_env_key("OAUTH_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
 
     url = "https://api.trackmania.com/api/display-names?"
     for uid in uids:
@@ -163,10 +157,8 @@ def number_to_time(number: int) -> str:
 @retry_on_error()
 def get_maps_info(map_uids: list[str]) -> dict[str, any]:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_ACCESS_TOKEN = get_key(dotenv_path, ("NADEO_ACCESS_TOKEN"))
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_ACCESS_TOKEN = get_env_key("NADEO_ACCESS_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
     url = f"https://prod.trackmania.core.nadeo.online/maps/?mapUidList={','.join(map_uids)}"
 
     headers = {
@@ -181,12 +173,8 @@ def get_maps_info(map_uids: list[str]) -> dict[str, any]:
 @retry_on_error()
 def get_campaign(campaign_id: int) -> dict:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_LIVESERVICES_ACCESS_TOKEN = get_key(
-        dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN")
-    )
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_LIVESERVICES_ACCESS_TOKEN = get_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
     url = f"https://live-services.trackmania.nadeo.live/api/token/club/52818/campaign/{campaign_id}"
     headers = {
         "Authorization": "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
@@ -200,12 +188,8 @@ def get_campaign(campaign_id: int) -> dict:
 @retry_on_error()
 def get_campaigns(offset: int, name: str) -> dict:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_LIVESERVICES_ACCESS_TOKEN = get_key(
-        dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN")
-    )
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_LIVESERVICES_ACCESS_TOKEN = get_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
     url = f"https://live-services.trackmania.nadeo.live/api/token/club/52818/activity?length=200&offset={offset}&active=true"
     headers = {
         "Authorization": "nadeo_v1 t=" + NADEO_LIVESERVICES_ACCESS_TOKEN,
@@ -219,13 +203,9 @@ def get_campaigns(offset: int, name: str) -> dict:
 @retry_on_error()
 def get_map_playercount(map_uid: str) -> int:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_LIVESERVICES_ACCESS_TOKEN = get_key(
-        dotenv_path, ("NADEO_LIVESERVICES_ACCESS_TOKEN")
-    )
-    USER_ID = get_key(dotenv_path, ("USER_ID"))
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_LIVESERVICES_ACCESS_TOKEN = get_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
+    USER_ID = get_env_key("USER_ID")
+    USER_AGENT = get_env_key("USER_AGENT")
     leaderboard_url = (
         "https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/"
     )
@@ -270,10 +250,8 @@ def get_map_playercount(map_uid: str) -> int:
 @retry_on_error()
 def get_nadeo_zones() -> list[dict]:
     check_token_refresh()
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    NADEO_ACCESS_TOKEN = get_key(dotenv_path, ("NADEO_ACCESS_TOKEN"))
-    USER_AGENT = get_key(dotenv_path, ("USER_AGENT"))
+    NADEO_ACCESS_TOKEN = get_env_key("NADEO_ACCESS_TOKEN")
+    USER_AGENT = get_env_key("USER_AGENT")
     url = "https://prod.trackmania.core.nadeo.online/zones/"
     headers = {
         "Authorization": "nadeo_v1 t=" + NADEO_ACCESS_TOKEN,

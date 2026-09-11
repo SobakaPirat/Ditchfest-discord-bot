@@ -4,8 +4,9 @@ import logging
 from datetime import datetime
 
 import requests
-from dotenv import find_dotenv, get_key, load_dotenv, set_key
 from requests.auth import HTTPBasicAuth
+
+from src.utils.config import get_env_key, set_env_key
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +22,11 @@ oauth_url = "https://api.trackmania.com/api/access_token"
 # Authenticates with Ubisoft and stores Nadeo access token,
 #   and Nadeo liveservices token, in .env
 def authenticate() -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-
-    user_agent = get_key(dotenv_path, ("USER_AGENT"))
-    login = get_key(dotenv_path, ("UBI_LOGIN"))
-    password = get_key(dotenv_path, ("UBI_PASSWORD"))
-    client_id = get_key(dotenv_path, ("CLIENT_ID"))
-    client_secret = get_key(dotenv_path, ("CLIENT_SECRET"))
+    user_agent = get_env_key("USER_AGENT")
+    login = get_env_key("UBI_LOGIN")
+    password = get_env_key("UBI_PASSWORD")
+    client_id = get_env_key("CLIENT_ID")
+    client_secret = get_env_key("CLIENT_SECRET")
 
     ubi_auth = HTTPBasicAuth(login, password)
 
@@ -45,8 +43,8 @@ def authenticate() -> None:
         logger.error("Invalid credentials!")
     access_token = nadeo_res["accessToken"]
     refresh_token = nadeo_res["refreshToken"]
-    set_key(dotenv_path, "NADEO_ACCESS_TOKEN", str(access_token))
-    set_key(dotenv_path, "NADEO_REFRESH_TOKEN", str(refresh_token))
+    set_env_key("NADEO_ACCESS_TOKEN", str(access_token))
+    set_env_key("NADEO_REFRESH_TOKEN", str(refresh_token))
 
     # Another nadeo request with "NadeoLiveServices" audience
     nadeo_body = {"audience": "NadeoLiveServices"}
@@ -57,8 +55,8 @@ def authenticate() -> None:
 
     access_token = nadeo_res["accessToken"]
     refresh_token = nadeo_res["refreshToken"]
-    set_key(dotenv_path, "NADEO_LIVESERVICES_ACCESS_TOKEN", str(access_token))
-    set_key(dotenv_path, "NADEO_LIVESERVICES_REFRESH_TOKEN", str(refresh_token))
+    set_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN", str(access_token))
+    set_env_key("NADEO_LIVESERVICES_REFRESH_TOKEN", str(refresh_token))
 
     oauth_headers = {"content-type": "application/x-www-form-urlencoded"}
     oauth_body = f"grant_type=client_credentials&client_id={client_id}&client_secret={client_secret}"
@@ -67,17 +65,14 @@ def authenticate() -> None:
     oauth_token = oauth_res["access_token"]
     current_time = int(datetime.now().timestamp())
     oauth_expiration = current_time + oauth_res["expires_in"]
-    set_key(dotenv_path, "OAUTH_TOKEN", str(oauth_token))
-    set_key(dotenv_path, "OAUTH_EXPIRATION", str(oauth_expiration))
+    set_env_key("OAUTH_TOKEN", str(oauth_token))
+    set_env_key("OAUTH_EXPIRATION", str(oauth_expiration))
 
 
 # Updates the nadeo access token in .env
 def refresh_access_token() -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-
-    refresh_token = get_key(dotenv_path, ("NADEO_REFRESH_TOKEN"))
-    user_agent = get_key(dotenv_path, ("USER_AGENT"))
+    refresh_token = get_env_key("NADEO_REFRESH_TOKEN")
+    user_agent = get_env_key("USER_AGENT")
 
     nadeo_headers = {
         "Content-Type": "application/json",
@@ -91,16 +86,13 @@ def refresh_access_token() -> None:
 
     access_token = nadeo_res["accessToken"]
     refresh_token = nadeo_res["refreshToken"]
-    set_key(dotenv_path, "NADEO_ACCESS_TOKEN", str(access_token))
-    set_key(dotenv_path, "NADEO_REFRESH_TOKEN", str(refresh_token))
+    set_env_key("NADEO_ACCESS_TOKEN", str(access_token))
+    set_env_key("NADEO_REFRESH_TOKEN", str(refresh_token))
 
 
 def refresh_live_access_token() -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-
-    refresh_token = get_key(dotenv_path, ("NADEO_LIVESERVICES_REFRESH_TOKEN"))
-    user_agent = get_key(dotenv_path, ("USER_AGENT"))
+    refresh_token = get_env_key("NADEO_LIVESERVICES_REFRESH_TOKEN")
+    user_agent = get_env_key("USER_AGENT")
 
     # LiveServices
     nadeo_headers = {
@@ -115,19 +107,16 @@ def refresh_live_access_token() -> None:
     try:
         access_token = nadeo_res["accessToken"]
         refresh_token = nadeo_res["refreshToken"]
-        set_key(dotenv_path, "NADEO_LIVESERVICES_ACCESS_TOKEN", str(access_token))
-        set_key(dotenv_path, "NADEO_LIVESERVICES_REFRESH_TOKEN", str(refresh_token))
+        set_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN", str(access_token))
+        set_env_key("NADEO_LIVESERVICES_REFRESH_TOKEN", str(refresh_token))
 
     except KeyError as e:
         logger.info(f"Refresh live services token: {e}")
 
 
 def refresh_oauth_token() -> None:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-
-    client_id = get_key(dotenv_path, ("CLIENT_ID"))
-    client_secret = get_key(dotenv_path, ("CLIENT_SECRET"))
+    client_id = get_env_key("CLIENT_ID")
+    client_secret = get_env_key("CLIENT_SECRET")
 
     oauth_headers = {"content-type": "application/x-www-form-urlencoded"}
     oauth_body = f"grant_type=client_credentials&client_id={client_id}&client_secret={client_secret}"
@@ -137,8 +126,8 @@ def refresh_oauth_token() -> None:
         oauth_res = oauth_res.json()
         oauth_token = oauth_res["access_token"]
         oauth_expires = oauth_res["expires_in"]
-        set_key(dotenv_path, "OAUTH_TOKEN", str(oauth_token))
-        set_key(dotenv_path, "OAUTH_EXPIRES", str(oauth_expires))
+        set_env_key("OAUTH_TOKEN", str(oauth_token))
+        set_env_key("OAUTH_EXPIRES", str(oauth_expires))
     except KeyError as e:
         logger.info(f"Refresh oauth token: {e}")
 
@@ -147,7 +136,7 @@ def refresh_oauth_token() -> None:
 #   and refreshes it if needed.
 def check_token_refresh() -> None:
     # Normal token
-    token = get_dotenv_key("NADEO_ACCESS_TOKEN")
+    token = get_env_key("NADEO_ACCESS_TOKEN")
 
     # Make sure token is not empty
     if token == "":
@@ -173,7 +162,7 @@ def check_token_refresh() -> None:
         # logger.info("check_token_refresh: No token refresh needed")
 
     # live
-    token = get_dotenv_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
+    token = get_env_key("NADEO_LIVESERVICES_ACCESS_TOKEN")
 
     # Make sure token is not empty
     if token == "":
@@ -197,8 +186,8 @@ def check_token_refresh() -> None:
         # logger.info("check_token_refresh: No LIVE token refresh needed")
 
     # oauth token
-    token = get_dotenv_key("OAUTH_TOKEN")
-    expiration = int(get_dotenv_key("OAUTH_EXPIRATION"))
+    token = get_env_key("OAUTH_TOKEN")
+    expiration = int(get_env_key("OAUTH_EXPIRATION"))
     # Make sure token is not empty
     if token == "":
         authenticate()
@@ -219,12 +208,6 @@ def check_token_refresh() -> None:
     else:
         pass
         # logger.info("check_token_refresh: No oauth token refresh needed")
-
-
-def get_dotenv_key(key) -> str:
-    dotenv_path = find_dotenv()
-    load_dotenv(dotenv_path)
-    return get_key(dotenv_path, (key))
 
 
 def decode_access_token(token: str) -> tuple[int, int]:
