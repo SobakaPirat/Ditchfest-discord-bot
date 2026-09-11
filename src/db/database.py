@@ -12,7 +12,7 @@ class Database:
         self.db_path = "database/database.db"
 
     def get_conn(self):
-        return sqlite3.connect(self.db_path)
+        return sqlite3.connect(self.db_path, timeout=10.0)
 
     def db_exist(self):
         if not os.path.exists(self.db_path):
