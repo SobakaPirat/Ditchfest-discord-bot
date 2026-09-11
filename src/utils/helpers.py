@@ -35,8 +35,13 @@ def retry_on_error(max_retries=10, delay=2, backoff=2):
                     time.sleep(current_delay)
                     current_delay *= backoff
                 except requests.exceptions.SSLError as e:
-                    logger.error(f"SSL ошибка в {func.__name__}: {e}")
-                    raise
+                    logger.warning(
+                        f"SSL ошибка в {func.__name__}: {e}. Попытка {retries}/{max_retries}"
+                    )
+                    if retries >= max_retries:
+                        raise
+                    time.sleep(current_delay)
+                    current_delay *= backoff
                 except requests.exceptions.ConnectionError:
                     retries += 1
                     logger.warning(
