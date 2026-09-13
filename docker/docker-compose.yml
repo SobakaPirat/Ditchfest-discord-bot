@@ -7,12 +7,13 @@ services:
     image: ditch-bot
     environment:
       - TZ=Europe/Moscow
+      - DB_HOST=mariadb
     volumes:
       - ../logs:/app/logs           # Папка для логов (опционально)
       - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
       - ../config:/app/config       # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: sh -c "sleep 50 && uv run notifier.py"
+    command: sh -c "sleep 1200 && uv run notifier.py"
     depends_on:
       - df-updater
 
@@ -21,12 +22,15 @@ services:
     image: ditch-bot
     environment:
       - TZ=Europe/Moscow            # Тайм зона для логов
+      - DB_HOST=mariadb
     volumes:
       - ../logs:/app/logs           # Папка для логов (опционально)
       - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
       - ../config:/app/config       # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: ["uv", "run", "updater.py"]
+    command: sh -c "sleep 50 && uv run updater.py"
+    depends_on:
+      - db
 
   db:
     image: mariadb:latest

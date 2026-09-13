@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import subprocess
 
 import mysql.connector
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self) -> None:
-        self.host = "127.0.0.1"
+        self.host = os.getenv("DB_HOST") or "mariadb"
         self.port = 3306
         self.user = "root"
         self.password = ""
