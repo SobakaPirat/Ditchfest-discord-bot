@@ -16,7 +16,6 @@ UPDATER_TIME = get_env_key("UPDATER_TIME")
 
 def update():
     get_new_maps()
-    open("database/.ready", "w").close()  # для docker-compose
     get_new_records()
 
 

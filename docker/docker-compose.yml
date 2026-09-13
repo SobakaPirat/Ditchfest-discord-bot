@@ -1,7 +1,10 @@
 services:
   df-notifier:
     container_name: df-notifier
-    image: ditch-bot:dev
+    build:
+      context: ..
+      dockerfile: docker/dockerfile
+    image: ditch-bot
     environment:
       - TZ=Europe/Moscow
     volumes:
@@ -9,14 +12,13 @@ services:
       - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
       - ../config:/app/config       # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: ["uv", "run", "notifier.py"]
+    command: sh -c "sleep 50 && uv run notifier.py"
     depends_on:
-      df-updater:
-        condition: service_healthy 
+      - df-updater
 
   df-updater:
     container_name: df-updater
-    image: ditch-bot:dev
+    image: ditch-bot
     environment:
       - TZ=Europe/Moscow            # Тайм зона для логов
     volumes:
@@ -25,9 +27,14 @@ services:
       - ../config:/app/config       # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
     command: ["uv", "run", "updater.py"]
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /app/database/.ready"]
-      interval: 30s        # как часто запускать проверку
-      timeout: 60s         # сколько ждать выполнения одной проверки
-      retries: 100         # сколько неудач подряд до статуса "unhealthy"
-      start_period: 1200s   # "льготный" период после старта контейнера
+
+  db:
+    image: mariadb:latest
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+    volumes:
+      - ../database:/var/lib/mysql
+    restart: unless-stopped

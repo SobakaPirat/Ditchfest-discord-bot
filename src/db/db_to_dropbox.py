@@ -4,7 +4,6 @@ import dropbox
 
 from src.utils.config import get_env_key
 
-DATABASE = "database/database.db"
 DROPBOX_KEY = get_env_key("DROPBOX_KEY")
 DROPBOX_SECRET = get_env_key("DROPBOX_SECRET")
 DROPBOX_TOKEN = get_env_key("DROPBOX_TOKEN")
@@ -46,24 +45,20 @@ def get_dropbox_client() -> dropbox.Dropbox:
 
 
 def upload_with_direct_link() -> str:
-    """Загружает и возвращает прямую ссылку для скачивания"""
-    dbx = get_dropbox_client()
+    """Экспортирует MariaDB в дамп и загружает его на Dropbox, возвращая прямую ссылку."""
+    path = "database/db_backup.sql"
 
+    dbx = get_dropbox_client()
     if dbx is None:
-        logger.error("❌ Не удалось установить соединение с Dropbox")
         return None
 
     try:
-        # Загружаем/обновляем файл
-        with open(DATABASE, "rb") as f:
+        with open(path, "rb") as f:
             dbx.files_upload(
-                f.read(), "/database.db", mode=dropbox.files.WriteMode.overwrite
+                f.read(), "/db_backup.sql", mode=dropbox.files.WriteMode.overwrite
             )
 
-        # Получаем публичную ссылку
-        shared_link = dbx.sharing_create_shared_link("/database.db")
-
-        # Преобразуем в прямую ссылку для скачивания
+        shared_link = dbx.sharing_create_shared_link("/db_backup.sql")
         direct_download_url = shared_link.url.replace("dl=0", "dl=1")
 
         logger.info(f"🔗 Прямая ссылка для скачивания: {direct_download_url}")
@@ -72,3 +67,10 @@ def upload_with_direct_link() -> str:
     except Exception as e:
         logger.error(f"❌ Ошибка при загрузке файла: {e}")
         return None
+
+
+def upload_to_dropbox() -> None:
+    DROPBOX_SAVE = get_env_key("DROPBOX_SAVE").lower() == "true"
+    if DROPBOX_SAVE:
+        url = upload_with_direct_link()
+        logger.info(url)

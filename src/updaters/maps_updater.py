@@ -1,8 +1,6 @@
 import logging
 
 from src.db.database import db
-from src.db.db_to_dropbox import upload_with_direct_link
-from src.utils.config import get_env_key
 from src.utils.helpers import (
     get_campaign,
     get_campaigns,
@@ -87,13 +85,6 @@ def update_nicknames() -> None:
     logger.info("Никнеймы записаны")
 
 
-def upload_to_dropbox() -> None:
-    DROPBOX_SAVE = get_env_key("DROPBOX_SAVE").lower() == "true"
-    if DROPBOX_SAVE:
-        url = upload_with_direct_link()
-        logger.info(url)
-
-
 def get_new_maps() -> None:
     if not db.db_exist():
         db.create_database()
@@ -103,5 +94,4 @@ def get_new_maps() -> None:
     update_maps(all_campaigns=False)
     update_playercounts()
     update_nicknames()
-    upload_to_dropbox()
     logger.info("Завершено!")
