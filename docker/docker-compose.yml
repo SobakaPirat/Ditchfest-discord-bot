@@ -41,4 +41,5 @@ services:
       MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
     volumes:
       - ../database:/var/lib/mysql
+      - ../backup:/backup
     restart: unless-stopped
