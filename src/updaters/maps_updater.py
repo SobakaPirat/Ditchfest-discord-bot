@@ -92,6 +92,6 @@ def get_new_maps() -> None:
     if db.maps_is_empty():
         update_maps(all_campaigns=True)
     update_maps(all_campaigns=False)
-    update_playercounts()
     update_nicknames()
+    update_playercounts()
     logger.info("Завершено!")
