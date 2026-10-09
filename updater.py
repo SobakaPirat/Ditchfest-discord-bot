@@ -1,4 +1,6 @@
 import logging
+import re
+import time
 
 import schedule
 
@@ -12,16 +14,34 @@ logger = logging.getLogger(__name__)
 logger.info("Запуск обновления карт и рекордов")
 
 UPDATER_TIME = get_env_key("UPDATER_TIME")
+UPDATER_TIME_PATTERN = re.compile(r"\d{2}:\d{2}(:\d{2})?")
 
 
-def update():
-    get_new_maps()
-    get_new_records()
+def validate_updater_time(value) -> str:
+    """schedule требует строгий HH:MM(:SS) — падаем сразу с понятной ошибкой."""
+    if value and UPDATER_TIME_PATTERN.fullmatch(value):
+        return value
+    raise SystemExit(
+        f"UPDATER_TIME={value!r} некорректен: нужен формат HH:MM "
+        "(например 04:00) в config/.env"
+    )
 
 
-schedule.every().day.at(UPDATER_TIME).do(update)
+def update() -> None:
+    try:
+        get_new_maps()
+    except Exception:
+        logger.exception("get_new_maps завершился с ошибкой")
+    try:
+        get_new_records()
+    except Exception:
+        logger.exception("get_new_records завершился с ошибкой")
+
+
+schedule.every().day.at(validate_updater_time(UPDATER_TIME)).do(update)
 
 
 update()
 while True:
     schedule.run_pending()
+    time.sleep(1)
