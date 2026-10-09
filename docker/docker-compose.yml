@@ -13,7 +13,7 @@ services:
       - ../database:/app/database   # Папка для базы данных (создаст новую бд если в папке пусто)
       - ../config:/app/config       # Файл .env (ОБЯЗАТЕЛЬНО скопируйте .env_template в .env и заполните своими данными)
     restart: unless-stopped
-    command: sh -c "sleep 1200 && uv run notifier.py"
+    command: sh -c "sleep 600 && uv run notifier.py"
     depends_on:
       - df-updater
 
