@@ -38,10 +38,14 @@ def update() -> None:
         logger.exception("get_new_records завершился с ошибкой")
 
 
-schedule.every().day.at(validate_updater_time(UPDATER_TIME)).do(update)
+def main() -> None:
+    schedule.every().day.at(validate_updater_time(UPDATER_TIME)).do(update)
+
+    update()
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
-update()
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == "__main__":
+    main()
