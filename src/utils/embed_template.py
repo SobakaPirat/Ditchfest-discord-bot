@@ -48,7 +48,7 @@ def post_record(
                 time_text += f"{number_to_time(map_records[place]['score'])}\n"
             else:
                 time_text += f"{number_to_time(map_records[place]['score'])} (+{number_to_time(map_records[place]['score'] - map_records[0]['score'])})\n"
-        embed.add_embed_field(name="Time", value=time_text, inline=True)
+    embed.add_embed_field(name="Time", value=time_text, inline=True)
 
     if timestamp is not None:
         embed.add_embed_field(
