@@ -107,5 +107,3 @@ def test_get_new_records_uses_single_transactional_replace(env):
     get_new_records()
 
     env.db.replace_records.assert_called_once()
-    env.db.remove_old_records.assert_not_called()
-    env.db.update_records.assert_not_called()

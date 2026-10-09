@@ -177,45 +177,6 @@ def test_fetch_maps_returns_empty(mock_db):
     assert result == []
 
 
-def test_get_wr_returns_record(mock_db):
-    db, _, mock_conn, mock_cursor = mock_db
-    mock_cursor.fetchone.return_value = ("Player1", 99, 1234567890)
-    result = db.get_wr("uid1")
-    assert result["player_name"] == "Player1"
-    assert result["player_time"] == 99
-    assert result["player_timestamp"] == 1234567890
-
-
-def test_get_wr_returns_none(mock_db):
-    db, _, mock_conn, mock_cursor = mock_db
-    mock_cursor.fetchone.return_value = None
-    result = db.get_wr("uid1")
-    assert result is None
-
-
-def test_remove_old_records(mock_db):
-    db, _, mock_conn, mock_cursor = mock_db
-    db.remove_old_records("uid1")
-    mock_cursor.execute.assert_called_once_with(
-        "DELETE FROM Records WHERE map_uid = %s", ("uid1",)
-    )
-    mock_conn.commit.assert_called_once()
-
-
-def test_update_records(mock_db):
-    db, _, mock_conn, mock_cursor = mock_db
-    record = {
-        "accountId": "acc1",
-        "name": "Player1",
-        "score": 99,
-        "timestamp": 1234567890,
-        "position": 1,
-    }
-    db.update_records(record, "uid1")
-    mock_cursor.execute.assert_called_once()
-    mock_conn.commit.assert_called_once()
-
-
 def test_replace_records_deletes_then_inserts(mock_db):
     db, _, mock_conn, mock_cursor = mock_db
     records = [

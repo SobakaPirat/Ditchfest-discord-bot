@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import subprocess
 
 import mysql.connector
 
@@ -114,33 +113,6 @@ class Database:
         conn.commit()
         cursor.close()
         conn.close()
-
-    def make_backup() -> None:
-        """Создаёт дамп MariaDB через mariadb-dump."""
-        path = "database/db_backup.sql"
-        try:
-            result = subprocess.run(
-                [
-                    "mariadb-dump",
-                    "-h",
-                    db.host,
-                    "-P",
-                    str(db.port),
-                    "-u",
-                    db.user,
-                    f"-p{db.password}",
-                    db.db_name,
-                ],
-                capture_output=True,
-                text=True,
-            )
-        except FileNotFoundError:
-            logger.error("mariadb-dump не найден.")
-
-        if result.returncode != 0:
-            logger.error(f"Ошибка mariadb-dump: {result.stderr}")
-
-        logger.info(f"Дамп сохранён: {path}")
 
     # ------------------------------------------------------------------
     # for notifier
@@ -271,59 +243,6 @@ class Database:
         else:
             logger.warning("Карты не найдены. Запустите updater.py для сбора карт.")
             return []
-
-    def get_wr(self, map_uid: str) -> dict[str, int] | None:
-        conn = self.get_conn()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT player_name, player_time, player_timestamp
-            FROM Records
-            WHERE map_uid = %s AND player_place = 1
-        """,
-            (map_uid,),
-        )
-        record = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        if record:
-            return {
-                "player_name": record[0],
-                "player_time": record[1],
-                "player_timestamp": record[2],
-            }
-        else:
-            return None
-
-    def remove_old_records(self, map_uid: str) -> None:
-        conn = self.get_conn()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM Records WHERE map_uid = %s", (map_uid,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-    def update_records(self, map_record: dict[str, any], map_uid: str) -> None:
-        conn = self.get_conn()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO Records
-                (map_uid, player_uid, player_name, player_time, player_timestamp, player_place)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """,
-            (
-                map_uid,
-                map_record["accountId"],
-                map_record["name"],
-                map_record["score"],
-                map_record["timestamp"],
-                map_record["position"],
-            ),
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
 
     def replace_records(self, map_uid: str, records: list[dict[str, any]]) -> None:
         conn = self.get_conn()
