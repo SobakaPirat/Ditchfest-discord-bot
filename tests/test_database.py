@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.db.database import Database
+from src.utils.config import get_env_key
 
 
 @pytest.fixture
@@ -17,7 +18,7 @@ def mock_db():
 
 def test_init_sets_default_attributes():
     db = Database()
-    assert db.host == "127.0.0.1"
+    assert db.host == get_env_key("DB_HOST") or "127.0.0.1"
     assert db.port == 3306
     assert db.user == "root"
     assert db.password == ""

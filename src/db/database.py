@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import logging
-import os
 import subprocess
 
 import mysql.connector
+
+from src.utils.config import get_env_key
 
 logger = logging.getLogger(__name__)
 
 
 class Database:
     def __init__(self) -> None:
-        self.host = os.getenv("DB_HOST") or "mariadb"
+        self.host = get_env_key("DB_HOST") or "127.0.0.1"
         self.port = 3306
         self.user = "root"
         self.password = ""
