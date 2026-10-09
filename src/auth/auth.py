@@ -41,6 +41,7 @@ def authenticate() -> None:
     nadeo_res = nadeo_res.json()
     if nadeo_res.get("message"):
         logger.error("Invalid credentials!")
+        raise ValueError(f"Ubisoft authentication failed: {nadeo_res['message']}")
     access_token = nadeo_res["accessToken"]
     refresh_token = nadeo_res["refreshToken"]
     set_env_key("NADEO_ACCESS_TOKEN", str(access_token))
@@ -125,9 +126,10 @@ def refresh_oauth_token() -> None:
         oauth_res = requests.post(oauth_url, headers=oauth_headers, data=oauth_body)
         oauth_res = oauth_res.json()
         oauth_token = oauth_res["access_token"]
-        oauth_expires = oauth_res["expires_in"]
+        oauth_expires_in = oauth_res["expires_in"]
+        current_time = int(datetime.now().timestamp())
         set_env_key("OAUTH_TOKEN", str(oauth_token))
-        set_env_key("OAUTH_EXPIRES", str(oauth_expires))
+        set_env_key("OAUTH_EXPIRATION", str(current_time + oauth_expires_in))
     except KeyError as e:
         logger.info(f"Refresh oauth token: {e}")
 
@@ -177,6 +179,7 @@ def check_token_refresh() -> None:
         # Authentication required
         authenticate()
         logger.info("check_token_refresh: Authenticated")
+        return
     elif current_time > refresh_possible_after:
         # Just refresh the token
         refresh_live_access_token()
@@ -187,13 +190,14 @@ def check_token_refresh() -> None:
 
     # oauth token
     token = get_env_key("OAUTH_TOKEN")
-    expiration = int(get_env_key("OAUTH_EXPIRATION"))
+
     # Make sure token is not empty
     if token == "":
         authenticate()
         logger.info("check_token_refresh: Authenticated")
         return
 
+    expiration = int(get_env_key("OAUTH_EXPIRATION") or 0)
     current_time = int(datetime.now().timestamp())
     if current_time > expiration:
         # Authentication required
@@ -201,13 +205,15 @@ def check_token_refresh() -> None:
         logger.info("check_token_refresh: Authenticated")
         return
 
-    elif current_time > refresh_possible_after:
+    try:
+        (_, refresh_possible_after) = decode_access_token(token)
+    except Exception:
+        refresh_possible_after = expiration
+
+    if current_time > refresh_possible_after:
         # Just refresh the token
         refresh_oauth_token()
         logger.info("check_token_refresh: Oauth token refreshed")
-    else:
-        pass
-        # logger.info("check_token_refresh: No oauth token refresh needed")
 
 
 def decode_access_token(token: str) -> tuple[int, int]:
