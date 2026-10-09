@@ -41,10 +41,9 @@ def main() -> None:
         if new_wr["timestamp"] != map["map_wr_timestamp"]:
             # Запись timestamp в дб
             logger.info("Запись в дб")
-            for record in map_records:
-                db.update_map_wr_timestamp(
-                    timestamp=new_wr["timestamp"], map_uid=map["map_uid"]
-                )
+            db.update_map_wr_timestamp(
+                timestamp=new_wr["timestamp"], map_uid=map["map_uid"]
+            )
 
 
 if __name__ == "__main__":
