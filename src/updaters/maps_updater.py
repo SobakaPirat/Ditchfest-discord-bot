@@ -89,7 +89,7 @@ def get_new_maps() -> None:
     if not db.db_exist():
         db.create_database()
         update_maps(all_campaigns=True)
-    if db.maps_is_empty():
+    elif db.maps_is_empty():
         update_maps(all_campaigns=True)
     update_maps(all_campaigns=False)
     update_nicknames()
