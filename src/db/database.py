@@ -325,5 +325,34 @@ class Database:
         cursor.close()
         conn.close()
 
+    def replace_records(self, map_uid: str, records: list[dict[str, any]]) -> None:
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM Records WHERE map_uid = %s", (map_uid,))
+            for map_record in records:
+                cursor.execute(
+                    """
+                    INSERT INTO Records
+                        (map_uid, player_uid, player_name, player_time, player_timestamp, player_place)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                    (
+                        map_uid,
+                        map_record["accountId"],
+                        map_record["name"],
+                        map_record["score"],
+                        map_record["timestamp"],
+                        map_record["position"],
+                    ),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
 
 db = Database()

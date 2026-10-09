@@ -216,6 +216,46 @@ def test_update_records(mock_db):
     mock_conn.commit.assert_called_once()
 
 
+def test_replace_records_deletes_then_inserts(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    records = [
+        {"accountId": "acc1", "name": "P1", "score": 99,
+         "timestamp": 1234567890, "position": 1},
+        {"accountId": "acc2", "name": "P2", "score": 100,
+         "timestamp": 1234567891, "position": 2},
+    ]
+
+    db.replace_records("uid1", records)
+
+    calls = mock_cursor.execute.call_args_list
+    assert len(calls) == 3
+    assert calls[0].args == ("DELETE FROM Records WHERE map_uid = %s", ("uid1",))
+    assert "INSERT INTO Records" in calls[1].args[0]
+    assert calls[1].args[1][:2] == ("uid1", "acc1")
+    assert calls[2].args[1][:2] == ("uid1", "acc2")
+    mock_conn.commit.assert_called_once()
+    mock_conn.rollback.assert_not_called()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+
+def test_replace_records_rollbacks_on_error(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    records = [
+        {"accountId": "acc1", "name": "P1", "score": 99,
+         "timestamp": 1234567890, "position": 1},
+    ]
+    mock_cursor.execute.side_effect = [None, RuntimeError("boom")]
+
+    with pytest.raises(RuntimeError, match="boom"):
+        db.replace_records("uid1", records)
+
+    mock_conn.commit.assert_not_called()
+    mock_conn.rollback.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+
 def test_db_instance_is_created():
     from src.db.database import db
     assert isinstance(db, Database)

@@ -13,6 +13,10 @@ def get_new_records() -> None:
         logger.info("Карта: " + map["map_name"])
         map_records = id_to_records(map["map_uid"])
 
+        if not map_records:
+            logger.info("Нет рекордов на карте")
+            continue
+
         # добавляем ники
         nicknames = ids_to_nicknames([item["accountId"] for item in map_records])
         for record in map_records:
@@ -20,11 +24,5 @@ def get_new_records() -> None:
             if record["accountId"] in nicknames:
                 record["name"] = nicknames[account_id]
 
-        if not map_records:
-            logger.info("Нет рекордов на карте")
-            continue
-
         logger.info("Запись в дб")
-        db.remove_old_records(map["map_uid"])
-        for record in map_records:
-            db.update_records(record, map["map_uid"])
+        db.replace_records(map["map_uid"], map_records)
