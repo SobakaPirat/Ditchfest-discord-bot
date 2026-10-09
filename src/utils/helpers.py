@@ -304,6 +304,15 @@ def get_country(data: list[dict], zone_id: int) -> str | None:
     return None
 
 
+def apply_nicknames(records: list[dict]) -> list[dict]:
+    nicknames = ids_to_nicknames([item["accountId"] for item in records])
+    for record in records:
+        account_id = record["accountId"]
+        if account_id in nicknames:
+            record["name"] = nicknames[account_id]
+    return records
+
+
 def country_to_flag_iso(country_name: str) -> str:
     try:
         # Ищем по официальному названию

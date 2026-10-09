@@ -6,6 +6,7 @@ import requests
 
 from src.utils.helpers import (
     REQUEST_TIMEOUT,
+    apply_nicknames,
     country_to_flag_iso,
     get_account_name,
     get_campaign,
@@ -381,5 +382,95 @@ def test_ids_to_nicknames_batches_by_50_and_merges():
     assert result["uid0"] == "name_uid0"
     assert result["uid119"] == "name_uid119"
     assert [len(c.args[0]) for c in mock_names.call_args_list] == [50, 50, 20]
+
+
+# ------------------------------------------------------------------
+# apply_nicknames
+
+def test_apply_nicknames_applies_nicknames_for_each_record():
+    records = [{"accountId": "acc1", "name": "raw1"}, {"accountId": "acc2", "name": "raw2"}]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames",
+        return_value={"acc1": "Nick1", "acc2": "Nick2"},
+    ) as mock_nicknames:
+        result = apply_nicknames(records)
+
+    # ники запрошены один раз по всем аккаунтам
+    mock_nicknames.assert_called_once_with(["acc1", "acc2"])
+    assert result == [
+        {"accountId": "acc1", "name": "Nick1"},
+        {"accountId": "acc2", "name": "Nick2"},
+    ]
+
+
+def test_apply_nicknames_keeps_raw_name_without_nickname():
+    records = [{"accountId": "acc1", "name": "raw1"}, {"accountId": "acc2", "name": "raw2"}]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames", return_value={"acc1": "Nick1"}
+    ):
+        result = apply_nicknames(records)
+
+    assert result[0]["name"] == "Nick1"
+    assert result[1]["name"] == "raw2"
+
+
+def test_apply_nicknames_empty_list():
+    with patch("src.utils.helpers.ids_to_nicknames", return_value={}) as mock_nicknames:
+        assert apply_nicknames([]) == []
+    # пустой список всё равно уходит в ids_to_nicknames (тот вернёт {} без сети)
+    mock_nicknames.assert_called_once_with([])
+
+
+def test_apply_nicknames_same_account_id_repeated():
+    records = [
+        {"accountId": "acc1", "name": "raw1"},
+        {"accountId": "acc1", "name": "raw1"},
+    ]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames", return_value={"acc1": "Nick1"}
+    ):
+        result = apply_nicknames(records)
+
+    assert [r["name"] for r in result] == ["Nick1", "Nick1"]
+
+
+def test_apply_nicknames_preserves_other_fields():
+    records = [
+        {"accountId": "acc1", "name": "raw1", "score": 42000, "position": 1},
+        {"accountId": "acc2", "name": "raw2", "score": 43000, "position": 2},
+    ]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames",
+        return_value={"acc1": "Nick1", "acc2": "Nick2"},
+    ):
+        result = apply_nicknames(records)
+
+    assert result == [
+        {"accountId": "acc1", "name": "Nick1", "score": 42000, "position": 1},
+        {"accountId": "acc2", "name": "Nick2", "score": 43000, "position": 2},
+    ]
+
+
+def test_apply_nicknames_returns_same_list_object():
+    records = [{"accountId": "acc1", "name": "raw1"}]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames", return_value={"acc1": "Nick1"}
+    ):
+        result = apply_nicknames(records)
+
+    # мутирует на месте и возвращает тот же объект
+    assert result is records
+    assert records[0]["name"] == "Nick1"
+
+
+def test_apply_nicknames_without_name_key():
+    # запись без ключа name — ник просто добавляется
+    records = [{"accountId": "acc1", "score": 42000}]
+    with patch(
+        "src.utils.helpers.ids_to_nicknames", return_value={"acc1": "Nick1"}
+    ):
+        result = apply_nicknames(records)
+
+    assert result[0]["name"] == "Nick1"
 
 

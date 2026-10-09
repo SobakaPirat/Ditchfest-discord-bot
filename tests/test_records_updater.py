@@ -28,9 +28,7 @@ def env():
     with (
         patch("src.updaters.records_updater.db") as mock_db,
         patch("src.updaters.records_updater.id_to_records") as mock_id_to_records,
-        patch(
-            "src.updaters.records_updater.ids_to_nicknames"
-        ) as mock_ids_to_nicknames,
+        patch("src.utils.helpers.ids_to_nicknames") as mock_ids_to_nicknames,
     ):
         yield SimpleNamespace(
             db=mock_db,
