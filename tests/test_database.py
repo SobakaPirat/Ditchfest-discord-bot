@@ -217,6 +217,46 @@ def test_replace_records_rollbacks_on_error(mock_db):
     mock_conn.close.assert_called_once()
 
 
+def test_get_cache_returns_value_and_timestamp(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    mock_cursor.fetchone.return_value = ("payload", 123)
+
+    assert db.get_cache("key") == ("payload", 123)
+
+
+def test_get_cache_returns_none_when_missing(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    mock_cursor.fetchone.return_value = None
+
+    assert db.get_cache("key") is None
+
+
+def test_set_cache_upserts_value(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    db.set_cache("key", "payload", 123)
+
+    calls = mock_cursor.execute.call_args_list
+    assert "CREATE TABLE IF NOT EXISTS Cache" in calls[0].args[0]
+    assert "INSERT INTO Cache" in calls[1].args[0]
+    assert calls[1].args[1] == ("key", "payload", 123)
+    mock_conn.commit.assert_called()
+
+
+def test_cache_table_created_once(mock_db):
+    db, _, mock_conn, mock_cursor = mock_db
+    mock_cursor.fetchone.return_value = None
+
+    db.get_cache("a")
+    db.get_cache("b")
+
+    create_calls = [
+        call
+        for call in mock_cursor.execute.call_args_list
+        if "CREATE TABLE IF NOT EXISTS Cache" in call.args[0]
+    ]
+    assert len(create_calls) == 1
+
+
 def test_db_instance_is_created():
     from src.db.database import db
     assert isinstance(db, Database)

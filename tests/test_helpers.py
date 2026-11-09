@@ -1,9 +1,13 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import json
+import time
+
 import pytest
 import requests
 
+from src.utils import helpers
 from src.utils.helpers import (
     REQUEST_TIMEOUT,
     apply_nicknames,
@@ -16,6 +20,8 @@ from src.utils.helpers import (
     get_map_records,
     get_maps_info,
     get_nadeo_zones,
+    get_flag_by_account,
+    flag_code_to_emoji,
     get_player_flag,
     id_to_records,
     ids_to_nicknames,
@@ -60,6 +66,32 @@ def api():
     ):
         mock_get.return_value.json.return_value = {}
         yield SimpleNamespace(get=mock_get, refresh=mock_refresh)
+
+
+class FakeCacheDB:
+    """In-memory замена src.db.database.db для тестов кеша (без MariaDB)."""
+
+    def __init__(self):
+        self.store: dict[str, tuple[str, int]] = {}
+
+    def get_cache(self, key):
+        return self.store.get(key)
+
+    def set_cache(self, key, value, updated_at):
+        self.store[key] = (value, updated_at)
+
+
+@pytest.fixture(autouse=True)
+def cache_db(monkeypatch):
+    """Свой in-memory кеш на каждый тест + сброс кеша в памяти процесса."""
+    fake = FakeCacheDB()
+    monkeypatch.setattr(helpers, "db", fake)
+    monkeypatch.setattr(helpers, "_zones_memo", None)
+    monkeypatch.setattr(helpers, "_zones_failed_at", None)
+    monkeypatch.setattr(helpers, "_tmio_flags_memo", {})
+    monkeypatch.setattr(helpers, "_tmio_flags_loaded", False)
+    monkeypatch.setattr(helpers, "_tmio_flags_failed_at", None)
+    return fake
 
 
 # ------------------------------------------------------------------
@@ -319,6 +351,76 @@ def test_get_nadeo_zones_returns_zones(api):
     api.refresh.assert_called_once_with()
 
 
+def test_get_nadeo_zones_writes_cache_and_reuses_memory(api, cache_db):
+    api.get.return_value.json.return_value = ZONES
+
+    assert get_nadeo_zones() == ZONES
+    assert helpers.ZONES_CACHE_KEY in cache_db.store
+
+    api.get.reset_mock()
+    assert get_nadeo_zones() == ZONES
+    assert not api.get.called
+
+
+def test_get_nadeo_zones_reads_fresh_db_cache(api, cache_db):
+    cache_db.store[helpers.ZONES_CACHE_KEY] = (json.dumps(ZONES), int(time.time()))
+
+    assert get_nadeo_zones() == ZONES
+    assert not api.get.called
+
+
+def test_get_nadeo_zones_refetches_stale_cache(api, cache_db):
+    old = int(time.time() - (helpers.ZONES_CACHE_TTL_HOURS + 1) * 3600)
+    cache_db.store[helpers.ZONES_CACHE_KEY] = (json.dumps(ZONES), old)
+    fresh = [{"zoneId": 2, "parentId": 0, "name": "Fresh"}]
+    api.get.return_value.json.return_value = fresh
+
+    assert get_nadeo_zones() == fresh
+    assert api.get.called
+    saved_value, _ = cache_db.store[helpers.ZONES_CACHE_KEY]
+    assert json.loads(saved_value) == fresh
+
+
+def test_get_nadeo_zones_force_refresh_bypasses_cache(api, cache_db):
+    cache_db.store[helpers.ZONES_CACHE_KEY] = (json.dumps(ZONES), int(time.time()))
+    fresh = [{"zoneId": 3, "parentId": 0, "name": "Fresh"}]
+    api.get.return_value.json.return_value = fresh
+
+    assert get_nadeo_zones(force_refresh=True) == fresh
+    assert api.get.call_count == 1
+
+
+def test_get_nadeo_zones_falls_back_to_stale_cache_on_error(api, cache_db):
+    old = int(time.time() - (helpers.ZONES_CACHE_TTL_HOURS + 1) * 3600)
+    cache_db.store[helpers.ZONES_CACHE_KEY] = (json.dumps(ZONES), old)
+    api.get.side_effect = requests.exceptions.ConnectionError("boom")
+
+    assert get_nadeo_zones() == ZONES
+    assert api.get.call_count == 2  # max_retries у загрузки зон
+
+
+def test_get_nadeo_zones_returns_empty_list_when_api_unavailable(api):
+    api.get.side_effect = requests.exceptions.ConnectionError("boom")
+
+    assert get_nadeo_zones() == []
+    assert api.get.call_count == 2
+
+
+def test_get_nadeo_zones_skips_api_during_cooldown(api, monkeypatch):
+    monkeypatch.setattr(helpers, "_zones_failed_at", time.time())
+
+    assert get_nadeo_zones() == []
+    assert not api.get.called
+
+
+def test_get_nadeo_zones_ignores_broken_cache(api, cache_db):
+    cache_db.store[helpers.ZONES_CACHE_KEY] = ("not a json", int(time.time()))
+    api.get.return_value.json.return_value = ZONES
+
+    assert get_nadeo_zones() == ZONES
+    assert api.get.called
+
+
 # ------------------------------------------------------------------
 # get_map_playercount
 
@@ -474,3 +576,81 @@ def test_apply_nicknames_without_name_key():
     assert result[0]["name"] == "Nick1"
 
 
+
+
+# ------------------------------------------------------------------
+# флаги через trackmania.io (запасной путь, когда /zones/ недоступен)
+
+def test_flag_code_to_emoji_maps_iso_codes():
+    assert flag_code_to_emoji("ARG") == ":flag_ar:"
+    assert flag_code_to_emoji("ru") == ":flag_ru:"
+
+
+def test_flag_code_to_emoji_regions_and_garbage_become_globe():
+    assert flag_code_to_emoji("samerica") == ":globe_with_meridians:"
+    assert flag_code_to_emoji("WOR") == ":globe_with_meridians:"
+    assert flag_code_to_emoji("") == ":globe_with_meridians:"
+
+
+def test_get_flag_by_account_returns_flag_from_trophies(api):
+    api.get.return_value.json.return_value = {
+        "trophies": {"zone": {"flag": "ARG"}}
+    }
+
+    assert get_flag_by_account("acc1") == ":flag_ar:"
+    assert api.get.call_args.args[0].endswith("/api/player/acc1")
+
+
+def test_get_flag_by_account_uses_root_zone_without_trophies(api):
+    api.get.return_value.json.return_value = {"zone": {"flag": "DEU"}}
+
+    assert get_flag_by_account("acc1") == ":flag_de:"
+
+
+def test_get_flag_by_account_caches_result(api, cache_db):
+    api.get.return_value.json.return_value = {"trophies": {"zone": {"flag": "ARG"}}}
+
+    assert get_flag_by_account("acc1") == ":flag_ar:"
+    assert helpers.TMIO_FLAGS_CACHE_KEY in cache_db.store
+
+    api.get.reset_mock()
+    assert get_flag_by_account("acc1") == ":flag_ar:"
+    assert not api.get.called
+
+
+def test_get_flag_by_account_reads_db_cache(api, cache_db):
+    cache_db.store[helpers.TMIO_FLAGS_CACHE_KEY] = (
+        json.dumps({"acc1": "ARG"}),
+        int(time.time()),
+    )
+
+    assert get_flag_by_account("acc1") == ":flag_ar:"
+    assert not api.get.called
+
+
+def test_get_flag_by_account_ignores_stale_db_cache(api, cache_db):
+    old = int(time.time() - (helpers.TMIO_FLAGS_CACHE_TTL_HOURS + 1) * 3600)
+    cache_db.store[helpers.TMIO_FLAGS_CACHE_KEY] = (json.dumps({"acc1": "ARG"}), old)
+    api.get.return_value.json.return_value = {"trophies": {"zone": {"flag": "DEU"}}}
+
+    assert get_flag_by_account("acc1") == ":flag_de:"
+    assert api.get.called
+
+
+def test_get_flag_by_account_returns_empty_on_error(api):
+    api.get.side_effect = requests.exceptions.ConnectionError("boom")
+
+    assert get_flag_by_account("acc1") == ""
+    assert api.get.call_count == 1  # без длинных повторов
+
+
+def test_get_flag_by_account_skips_api_during_cooldown(api, monkeypatch):
+    monkeypatch.setattr(helpers, "_tmio_flags_failed_at", time.time())
+
+    assert get_flag_by_account("acc1") == ""
+    assert not api.get.called
+
+
+def test_get_flag_by_account_without_id_makes_no_request(api):
+    assert get_flag_by_account("") == ""
+    assert not api.get.called

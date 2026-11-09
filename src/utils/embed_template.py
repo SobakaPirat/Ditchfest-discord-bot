@@ -5,6 +5,7 @@ from discord_webhook import DiscordEmbed, DiscordWebhook
 
 from src.utils.config import get_env_key
 from src.utils.helpers import (
+    get_flag_by_account,
     get_nadeo_zones,
     get_player_flag,
     number_to_time,
@@ -36,7 +37,13 @@ def post_record(
     nadeo_zones = get_nadeo_zones()
     nicknames_discord = ""
     for place in range(min(3, len(map_records))):
-        nicknames_discord += f"{medals[place]} {get_player_flag(map_records[place]['zoneId'], nadeo_zones)} {map_records[place]['name']}\n"
+        record = map_records[place]
+        if nadeo_zones:
+            flag = get_player_flag(record["zoneId"], nadeo_zones)
+        else:
+            # /zones/ недоступен — тянем флаг напрямую из trackmania.io
+            flag = get_flag_by_account(record.get("accountId", ""))
+        nicknames_discord += f"{medals[place]} {flag} {record['name']}\n"
     embed.add_embed_field(name="Record Holder", value=nicknames_discord, inline=True)
 
     if map_records[0]["score"] < 0:

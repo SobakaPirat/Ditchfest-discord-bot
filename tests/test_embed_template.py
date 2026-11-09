@@ -20,7 +20,12 @@ ZONES = [{"zoneId": 100, "parentId": 10, "name": "World"}]
 
 def make_records(scores=(100000, 100500, 101000)):
     return [
-        {"name": f"Player{i + 1}", "score": score, "zoneId": 100 + i}
+        {
+            "name": f"Player{i + 1}",
+            "score": score,
+            "zoneId": 100 + i,
+            "accountId": f"acc{i + 1}",
+        }
         for i, score in enumerate(scores)
     ]
 
@@ -42,15 +47,21 @@ def no_sleep(monkeypatch):
 def post(no_sleep):
     """Хелпер: прогоняет post_record с моками и возвращает результат."""
 
-    def _post(map=None, records=None, timestamp=None):
+    def _post(map=None, records=None, timestamp=None, zones=ZONES):
+        flag_by_zones = ":flag_ru:"
+        flag_by_account = ":flag_de:"
         with (
             patch("src.utils.embed_template.DiscordWebhook") as mock_webhook_cls,
             patch(
-                "src.utils.embed_template.get_nadeo_zones", return_value=ZONES
+                "src.utils.embed_template.get_nadeo_zones", return_value=zones
             ) as mock_zones,
             patch(
-                "src.utils.embed_template.get_player_flag", return_value=":flag_ru:"
+                "src.utils.embed_template.get_player_flag", return_value=flag_by_zones
             ) as mock_flag,
+            patch(
+                "src.utils.embed_template.get_flag_by_account",
+                return_value=flag_by_account,
+            ) as mock_account_flag,
         ):
             post_record(
                 WEBHOOK_URL,
@@ -66,6 +77,7 @@ def post(no_sleep):
             webhook=webhook,
             webhook_cls=mock_webhook_cls,
             flag=mock_flag,
+            account_flag=mock_account_flag,
             zones=mock_zones,
         )
 
@@ -113,6 +125,23 @@ def test_record_holder_field_lists_top_3(post):
         (102, ZONES),
     ]
     result.zones.assert_called_once_with()
+
+
+def test_flags_come_from_trackmania_io_when_zones_unavailable(post):
+    result = post(zones=[])
+
+    field = get_field(result.embed, "Record Holder")
+    assert field["value"] == (
+        ":first_place: :flag_de: Player1\n"
+        ":second_place: :flag_de: Player2\n"
+        ":third_place: :flag_de: Player3\n"
+    )
+    assert [c.args for c in result.account_flag.call_args_list] == [
+        ("acc1",),
+        ("acc2",),
+        ("acc3",),
+    ]
+    assert not result.flag.called
 
 
 def test_time_field_shows_gaps_between_places(post):

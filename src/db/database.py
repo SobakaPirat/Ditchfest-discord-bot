@@ -8,6 +8,14 @@ from src.utils.config import get_env_key
 
 logger = logging.getLogger(__name__)
 
+CREATE_CACHE_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS Cache (
+        cache_key   VARCHAR(64) PRIMARY KEY,
+        cache_value LONGTEXT NOT NULL,
+        updated_at  BIGINT NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+"""
+
 
 class Database:
     def __init__(self) -> None:
@@ -16,6 +24,7 @@ class Database:
         self.user = "root"
         self.password = ""
         self.db_name = "database"
+        self._cache_table_ready = False
 
     # ------------------------------------------------------------------
     # Соединения
@@ -109,6 +118,8 @@ class Database:
                 FOREIGN KEY (map_uid) REFERENCES Maps (map_uid) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
+
+        cursor.execute(CREATE_CACHE_TABLE_SQL)
 
         conn.commit()
         cursor.close()
@@ -272,6 +283,53 @@ class Database:
         finally:
             cursor.close()
             conn.close()
+
+    # ------------------------------------------------------------------
+    # Кеш (зоны Nadeo и флаги trackmania.io)
+
+    def _ensure_cache_table(self) -> None:
+        if self._cache_table_ready:
+            return
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        cursor.execute(CREATE_CACHE_TABLE_SQL)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        self._cache_table_ready = True
+
+    def get_cache(self, cache_key: str) -> tuple[str, int] | None:
+        """Возвращает (значение, updated_at) или None, если записи нет."""
+        self._ensure_cache_table()
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT cache_value, updated_at FROM Cache WHERE cache_key = %s",
+            (cache_key,),
+        )
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return (row[0], int(row[1])) if row else None
+
+    def set_cache(self, cache_key: str, cache_value: str, updated_at: int) -> None:
+        """Перезаписывает значение кеша (upsert)."""
+        self._ensure_cache_table()
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO Cache (cache_key, cache_value, updated_at)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                cache_value = VALUES(cache_value),
+                updated_at = VALUES(updated_at)
+        """,
+            (cache_key, cache_value, updated_at),
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
 
 
 db = Database()
