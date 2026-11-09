@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from notifier import main, process_map
+from notifier import main
+from src.notifiers.records_notifier import NO_RECORDS_TIMESTAMP, process_map
 
 
 def make_map(map_uid="uid_a", map_name="Map A", wr_timestamp=111):
@@ -30,10 +31,14 @@ def make_records(*account_ids, timestamp=222):
 @pytest.fixture
 def env():
     with (
-        patch("notifier.db") as mock_db,
-        patch("notifier.get_map_records") as mock_get_map_records,
-        patch("notifier.ids_to_nicknames") as mock_ids_to_nicknames,
-        patch("notifier.post_all_discords") as mock_post_all_discords,
+        patch("src.notifiers.records_notifier.db") as mock_db,
+        patch(
+            "src.notifiers.records_notifier.get_map_records"
+        ) as mock_get_map_records,
+        patch("src.utils.helpers.ids_to_nicknames") as mock_ids_to_nicknames,
+        patch(
+            "src.notifiers.records_notifier.post_all_discords"
+        ) as mock_post_all_discords,
     ):
         yield SimpleNamespace(
             db=mock_db,
@@ -107,6 +112,44 @@ def test_process_map_first_wr_updates_db_without_notification(env):
 
     env.ids_to_nicknames.assert_not_called()
     env.post_all_discords.assert_not_called()
+    env.db.update_map_wr_timestamp.assert_called_once_with(
+        timestamp=222, map_uid="uid_a"
+    )
+
+
+def test_process_map_without_records_marks_map_as_empty(env):
+    env.get_map_records.return_value = []
+
+    process_map(make_map(wr_timestamp=None))
+
+    env.ids_to_nicknames.assert_not_called()
+    env.post_all_discords.assert_not_called()
+    env.db.update_map_wr_timestamp.assert_called_once_with(
+        timestamp=NO_RECORDS_TIMESTAMP, map_uid="uid_a"
+    )
+
+
+def test_process_map_without_records_keeps_existing_marker(env):
+    env.get_map_records.return_value = []
+
+    process_map(make_map(wr_timestamp=NO_RECORDS_TIMESTAMP))
+
+    env.post_all_discords.assert_not_called()
+    env.db.update_map_wr_timestamp.assert_not_called()
+
+
+def test_process_map_first_record_on_empty_map_notifies(env):
+    map = make_map(wr_timestamp=NO_RECORDS_TIMESTAMP)
+    map_records = make_records("acc1", "acc2")
+    env.get_map_records.return_value = map_records
+    env.ids_to_nicknames.return_value = {"acc1": "Nick1", "acc2": "Nick2"}
+
+    process_map(map)
+
+    env.ids_to_nicknames.assert_called_once_with(["acc1", "acc2"])
+    env.post_all_discords.assert_called_once_with(
+        map=map, map_records=map_records, timestamp=None
+    )
     env.db.update_map_wr_timestamp.assert_called_once_with(
         timestamp=222, map_uid="uid_a"
     )
